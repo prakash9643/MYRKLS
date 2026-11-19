@@ -2,7 +2,7 @@
 
 client_id = "8ff01e546ceded1b21a5205754050fa9"
 name = "MYRKLS"
-application_url = "https://example.com"
+application_url = "https://myrkls-admin.vercel.app"
 embedded = true
 
 [build]
@@ -25,5 +25,5 @@ api_version = "2026-10"
 
 [auth]
 redirect_urls = [
-  "https://example.com/auth/callback"
+  "https://myrkls-admin.vercel.app/auth/callback"
 ]
