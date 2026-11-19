@@ -21,9 +21,9 @@ export interface MyrklsProductSection3Props {
 const RECOMMENDED_PRODUCTS: RecommendedProduct[] = [
   {
     id: 'awakening',
-    name: 'AWAKENING™',
+    name: 'Performance Gel Cleanser',
     category: 'Performance Gel Cleanser',
-    categoryBadge: 'GEL CLEANSER',
+    categoryBadge: '',
     price: '₹1,299',
     originalPrice: '₹1,499',
     discount: '15% OFF',
@@ -32,9 +32,9 @@ const RECOMMENDED_PRODUCTS: RecommendedProduct[] = [
   },
   {
     id: 'restoration',
-    name: 'RESTORATION™',
-    category: 'Plumping Pigment-Repair Cream',
-    categoryBadge: 'BARRIER CREAM',
+    name: 'Pigment Repair Cream',
+    category: 'Pigment Repair Cream',
+    categoryBadge: '',
     price: '₹1,349',
     originalPrice: '₹1,599',
     discount: '16% OFF',
@@ -43,9 +43,9 @@ const RECOMMENDED_PRODUCTS: RecommendedProduct[] = [
   },
   {
     id: 'sentinel',
-    name: 'SENTINEL™',
+    name: 'Advanced Aqua Sunscreen',
     category: 'Advanced Aqua Sunscreen',
-    categoryBadge: 'SUN PROTECTION',
+    categoryBadge: '',
     price: '₹1,399',
     originalPrice: '₹1,649',
     discount: '14% OFF',
@@ -123,30 +123,11 @@ export const MyrklsProductSection3: React.FC<MyrklsProductSection3Props> = ({
                   className="w-full h-full object-cover object-center"
                   loading="lazy"
                 />
-
-                {/* Category Badge on Top-Left of Image */}
-                <div className="absolute top-3.5 left-3.5 z-10 pointer-events-none">
-                  <span className="bg-black/85 backdrop-blur-sm text-white text-[9.5px] font-sans font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-none">
-                    {prod.categoryBadge}
-                  </span>
-                </div>
-
-                {/* Discount Badge on Top-Right of Image */}
-                <div className="absolute top-3.5 right-3.5 z-10 pointer-events-none">
-                  <span className="bg-[#FF5A1F] text-white text-[10px] font-sans font-bold tracking-wider uppercase px-2.5 py-1 rounded-none shadow-sm">
-                    {prod.discount}
-                  </span>
-                </div>
               </div>
 
               {/* Product Info & Action */}
               <div className="p-6 flex flex-col flex-1 justify-between bg-white">
                 <div>
-                  {/* Short Category */}
-                  <span className="text-[11px] font-sans font-semibold tracking-wider uppercase text-[#7A857E] block mb-1.5">
-                    {prod.category}
-                  </span>
-
                   {/* Product Name */}
                   <h3 className="text-[20px] sm:text-[22px] font-bold font-['Syne',sans-serif] text-[#111111] tracking-tight uppercase leading-snug">
                     {prod.name}
@@ -159,9 +140,6 @@ export const MyrklsProductSection3: React.FC<MyrklsProductSection3Props> = ({
                     </span>
                     <span className="text-[13.5px] text-[#8E9A92] line-through font-normal font-sans">
                       {prod.originalPrice}
-                    </span>
-                    <span className="text-[11px] font-bold text-[#FF5A1F] font-sans uppercase tracking-wider">
-                      ({prod.discount})
                     </span>
                   </div>
                 </div>

@@ -41,19 +41,19 @@ export const MyrklsScienceSection: React.FC = () => {
     <section
       id="about-us"
       aria-label="Science and Molecules"
-      className="w-full mt-24 mb-24 select-none bg-[#07130B] scroll-mt-24"
+      className="w-full my-12 md:my-24 select-none bg-[#07130B] scroll-mt-24"
     >
       <div id="our-formulation-philosophy" className="sr-only" />
-      {/* Edge-to-Edge 720px Height Container with Square Corners (rounded-none) and Zero Side Margins */}
-      <div className="w-full h-[720px] rounded-none overflow-hidden relative shadow-[0_20px_60px_rgba(11,23,16,0.18)]">
-        {/* Background Image (Image 1: Full-Bleed Edge-to-Edge Bio-spheres) */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none">
+      {/* Container: h-auto on mobile, fixed 720px on desktop */}
+      <div className="w-full h-auto md:h-[720px] rounded-none overflow-hidden relative shadow-[0_20px_60px_rgba(11,23,16,0.18)]">
+        {/* Background Image: Desktop only full-bleed edge-to-edge */}
+        <div className="hidden md:block absolute inset-0 w-full h-full pointer-events-none">
           <img
             src="/myrkls-sec3-bg-full.webp"
             alt="MYRKLS Molecular Science Background"
             className="w-full h-full object-cover select-none"
           />
-          {/* Subtle dark gradient overlay to ensure text contrast while retaining sphere glow */}
+          {/* Desktop subtle dark gradient overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -63,10 +63,12 @@ export const MyrklsScienceSection: React.FC = () => {
           />
         </div>
 
-        {/* Flush Split Layout: Zero Left/Right Container Padding */}
-        <div className="relative z-10 w-full h-full flex items-stretch p-0">
-          {/* Left Side: Content */}
-          <div className="w-1/2 h-full flex flex-col justify-between py-14 pl-12 md:pl-20 pr-12">
+        {/* Flush Split Layout: 1:1 image on mobile (<768px), 50/50 split on desktop (>=768px) */}
+        <div className="relative z-10 w-full h-full flex flex-col md:flex-row items-stretch p-0">
+          
+          {/* Content Column: Hidden on mobile (<768px), Left side on desktop (>=768px) */}
+          <div className="hidden md:flex md:w-1/2 md:h-full flex-col justify-between md:py-14 md:pl-12 md:pl-20 md:pr-12">
+            
             {/* Header Block */}
             <div>
               <p className="text-[11px] font-medium tracking-[0.2em] text-[#A5CBAE] uppercase mb-2.5 drop-shadow-sm">
@@ -81,7 +83,7 @@ export const MyrklsScienceSection: React.FC = () => {
               </p>
             </div>
 
-            {/* Three Science Pillars */}
+            {/* Science Rows: Desktop Interactive Pillars (>=768px) */}
             <div className="space-y-3 my-auto py-2">
               {pillars.map((pillar, idx) => {
                 const isActive = activePillar === idx;
@@ -126,9 +128,9 @@ export const MyrklsScienceSection: React.FC = () => {
             <div>
               <a
                 href="#our-science"
-                className="inline-flex items-center justify-center h-[42px] px-7 rounded-none bg-[#111111] text-white text-[13px] font-medium tracking-tight hover:bg-[#FF5A2A] transition-all duration-200 shadow-[0_4px_16px_rgba(0,0,0,0.25)] gap-2 group focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] focus:ring-offset-2"
+                className="inline-flex items-center justify-center h-[46px] min-h-[44px] px-7 rounded-none bg-[#111111] text-white text-[13px] font-medium tracking-tight hover:bg-[#FF5A2A] transition-all duration-200 shadow-[0_4px_16px_rgba(0,0,0,0.25)] gap-2 group focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] focus:ring-offset-2"
               >
-                <span>Explore Our Science</span>
+                <span>EXPLORE OUR SCIENCE</span>
                 <span className="text-[13px] leading-none transition-transform duration-200 group-hover:translate-x-0.5">
                   →
                 </span>
@@ -136,8 +138,8 @@ export const MyrklsScienceSection: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Side: Image 2 Flush to Top, Bottom, and Right Edge */}
-          <div className="w-1/2 h-full relative overflow-hidden border-l border-white/10 bg-[#E9F3EC]">
+          {/* Molecular Image: 1:1 Aspect Ratio on mobile, Right half on desktop */}
+          <div className="w-full aspect-square md:aspect-auto md:w-1/2 md:h-full relative overflow-hidden md:border-l border-white/10 bg-[#E9F3EC]">
             <motion.div
               key={pillars[activePillar].id}
               initial={{ opacity: 0 }}
@@ -148,15 +150,16 @@ export const MyrklsScienceSection: React.FC = () => {
               <img
                 src={pillars[activePillar].image}
                 alt={pillars[activePillar].title}
-                className="w-full h-full object-cover select-none"
+                className="w-full h-full object-cover object-center select-none"
               />
 
-              {/* Floating Outlined Diagonal Arrow Badge in Corner */}
-              <div className="absolute right-5 bottom-5 w-9 h-9 rounded-none border border-black/10 bg-white/85 backdrop-blur-md flex items-center justify-center text-[#111111] shadow-md hover:bg-[#FF5A2A] hover:text-white transition-all">
+              {/* Floating Outlined Diagonal Arrow Badge (Desktop only) */}
+              <div className="hidden md:flex absolute right-5 bottom-5 w-9 h-9 rounded-none border border-black/10 bg-white/85 backdrop-blur-md items-center justify-center text-[#111111] shadow-md hover:bg-[#FF5A2A] hover:text-white transition-all">
                 <ArrowUpRight size={15} strokeWidth={2} />
               </div>
             </motion.div>
           </div>
+
         </div>
       </div>
     </section>

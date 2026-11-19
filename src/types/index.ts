@@ -60,6 +60,8 @@ export interface CartItem {
   image: string;
   size?: string;
   quantity: number;
+  merchandiseId?: string;
+  lineTotal?: string;
 }
 
 export interface CartContextType {
@@ -75,6 +77,20 @@ export interface CartContextType {
   totalCount: number;
   subtotal: number;
   formattedSubtotal: string;
+  isShopifyCart: boolean;
+  isCartLoading: boolean;
+  isCartAdding: boolean;
+  isCartMutating: boolean;
+  cartError: string | null;
+  checkoutUrl: string | null;
+  shopifyCart: import('../shopify/types').ShopifyCart | null;
+  addShopifyVariant: (merchandiseId: string, quantity?: number) => Promise<void>;
+  refreshShopifyCart: () => Promise<void>;
+  prepareShopifyCheckout: () => Promise<string>;
+  updateShopifyCartLine: (lineId: string, quantity: number) => Promise<void>;
+  removeShopifyCartLine: (lineId: string) => Promise<void>;
+  clearShopifyCart: () => void;
+  dismissCartError: () => void;
 }
 
 export interface CustomerAddress {
@@ -108,4 +124,17 @@ export interface OrderRecord {
   trackingNumber?: string;
 }
 
-export type ViewState = 'home' | 'view-all' | 'pdp' | 'checkout' | 'account';
+export type ViewState =
+  | 'home'
+  | 'view-all'
+  | 'pdp'
+  | 'checkout'
+  | 'account'
+  | 'our-science'
+  | 'about-us'
+  | 'contact-us'
+  | 'terms'
+  | 'privacy-policy'
+  | 'shipping-policy'
+  | 'returns-refunds'
+  | 'not-found';

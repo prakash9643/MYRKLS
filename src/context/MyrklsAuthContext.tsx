@@ -85,106 +85,8 @@ const WISHLIST_KEY = 'myrkls_wishlist';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Initial default registered demo customer with real profile data
-const DEFAULT_CUSTOMER: MyrklsCustomer = {
-  id: 'usr_841920',
-  name: 'Alexandra Vance',
-  email: 'alexandra.v@domain.com',
-  phone: '9876543210',
-  isVerified: true,
-  addresses: [
-    {
-      id: 'addr_1',
-      firstName: 'Alexandra',
-      lastName: 'Vance',
-      phone: '9876543210',
-      address: '1402, Skyline Residency, MG Road',
-      landmark: 'Near Central Park',
-      pincode: '560001',
-      city: 'Bengaluru',
-      state: 'Karnataka',
-      isDefault: true,
-    },
-    {
-      id: 'addr_2',
-      firstName: 'Alexandra',
-      lastName: 'Vance',
-      phone: '9876543210',
-      address: 'Penthouse 8B, Sea Green Avenue, Worli',
-      landmark: 'Opposite High Street',
-      pincode: '400018',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      isDefault: false,
-    },
-  ],
-  orders: [
-    {
-      id: 'MYR-982144',
-      date: '14 October 2026',
-      status: 'Dispatched',
-      paymentMethod: 'UPI',
-      total: '₹1,499',
-      totalNumber: 1499,
-      items: [
-        {
-          productId: 'incarnation',
-          name: 'INCARNATION™ Skin Renewal Serum',
-          price: '₹1,499',
-          quantity: 1,
-          size: '30 mL',
-          image: '/myrkls-prod-incarnation-dew.webp',
-        },
-      ],
-      shippingAddress: {
-        name: 'Alexandra Vance',
-        phone: '+91 9876543210',
-        address: '1402, Skyline Residency, MG Road',
-        city: 'Bengaluru',
-        state: 'Karnataka',
-        pincode: '560001',
-      },
-      tracking: {
-        carrier: 'BlueDart Express',
-        trackingNumber: 'BLR-982144701',
-        estimatedDelivery: '21 October 2026',
-        currentStep: 3,
-      },
-    },
-  ],
-  wishlist: ['matrix', 'sentinel'],
-  marketingPreferences: {
-    emailNews: true,
-    smsAlerts: false,
-  },
-  createdAt: '2026-09-01T10:00:00.000Z',
-};
-
 export const MyrklsAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<MyrklsCustomer | null>(() => {
-    if (typeof window === 'undefined') return null;
-    try {
-      const stored = localStorage.getItem(CURRENT_USER_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.orders) {
-          parsed.orders.forEach((o: any) => {
-            o.items?.forEach((i: any) => {
-              if (i.productId === 'incarnation' && (!i.image || i.image.includes('model.webp'))) {
-                i.image = '/myrkls-prod-incarnation-dew.webp';
-              }
-            });
-          });
-        }
-        return parsed;
-      }
-      // Auto-login default customer for initial preview if none set
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(DEFAULT_CUSTOMER));
-      return DEFAULT_CUSTOMER;
-    } catch {
-      return DEFAULT_CUSTOMER;
-    }
-  });
+  const [currentUser, setCurrentUser] = useState<MyrklsCustomer | null>(null);
 
   const [wishlist, setWishlist] = useState<string[]>(() => {
     if (typeof window === 'undefined') return [];
@@ -197,39 +99,14 @@ export const MyrklsAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   });
 
-  // Sync current user to localStorage
   useEffect(() => {
-    if (currentUser) {
-      try {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
-        // Also sync saved profiles for checkout smart autofill
-        if (currentUser.addresses.length > 0) {
-          const defaultAddr = currentUser.addresses.find((a) => a.isDefault) || currentUser.addresses[0];
-          const names = currentUser.name.split(' ');
-          const savedProfile = {
-            phone: currentUser.phone,
-            email: currentUser.email,
-            firstName: names[0] || currentUser.name,
-            lastName: names.slice(1).join(' ') || '',
-            address: defaultAddr.address,
-            landmark: defaultAddr.landmark,
-            pincode: defaultAddr.pincode,
-            city: defaultAddr.city,
-            state: defaultAddr.state,
-          };
-          localStorage.setItem('myrkls_saved_customer_profiles', JSON.stringify([savedProfile]));
-        }
-      } catch (err) {
-        console.warn('Failed to persist user to localStorage:', err);
-      }
-    } else {
-      try {
-        localStorage.removeItem(CURRENT_USER_KEY);
-      } catch {
-        // ignore
-      }
+    try {
+      localStorage.removeItem(CURRENT_USER_KEY);
+      localStorage.removeItem('myrkls_saved_customer_profiles');
+    } catch {
+      // Storage may be unavailable in private browsing contexts.
     }
-  }, [currentUser]);
+  }, []);
 
   // Sync wishlist to localStorage
   useEffect(() => {
@@ -240,37 +117,12 @@ export const MyrklsAuthProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     }
   }, [wishlist]);
 
-  const login = (phoneOrEmail: string, name?: string) => {
-    const isEmail = phoneOrEmail.includes('@');
-    const existing = currentUser || DEFAULT_CUSTOMER;
-    const user: MyrklsCustomer = {
-      ...existing,
-      id: `usr_${Date.now().toString().slice(-6)}`,
-      email: isEmail ? phoneOrEmail : existing.email,
-      phone: !isEmail ? phoneOrEmail.replace(/\D/g, '') : existing.phone,
-      name: name || (isEmail ? phoneOrEmail.split('@')[0] : existing.name),
-      isVerified: true,
-    };
-    setCurrentUser(user);
+  const login = (_phoneOrEmail: string, _name?: string) => {
+    setCurrentUser(null);
   };
 
-  const signup = (phone: string, email: string, name: string) => {
-    const newUser: MyrklsCustomer = {
-      id: `usr_${Date.now().toString().slice(-6)}`,
-      name: name.trim() || 'Valued Member',
-      email: email.trim(),
-      phone: phone.replace(/\D/g, ''),
-      isVerified: true,
-      addresses: [],
-      orders: [],
-      wishlist: [],
-      marketingPreferences: {
-        emailNews: true,
-        smsAlerts: false,
-      },
-      createdAt: new Date().toISOString(),
-    };
-    setCurrentUser(newUser);
+  const signup = (_phone: string, _email: string, _name: string) => {
+    setCurrentUser(null);
   };
 
   const logout = () => {

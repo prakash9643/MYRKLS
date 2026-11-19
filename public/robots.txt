@@ -1,0 +1,25 @@
+# ==============================================================================
+# MYRKLS — Technical SEO Robots.txt
+# Strict index-control & crawl governance
+# ==============================================================================
+
+User-agent: *
+
+# Transactional, utility, search & private customer endpoints
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+Disallow: /orders
+Disallow: /search
+
+# Uncontrolled query & faceted parameter variations
+Disallow: /*?sort=
+Disallow: /*?view=
+Disallow: /*?session=
+Disallow: /*?preview=
+
+# Allow all critical public pages, collections, PDPs & static assets
+Allow: /
+
+# Sitemap Index Declaration
+Sitemap: https://myrkls.com/sitemap.xml

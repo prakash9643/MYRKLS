@@ -1,0 +1,59 @@
+{
+  "name": "@myrkls/shopify-admin",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "sync:cms-schema": "node scripts/sync-cms-schema.mjs",
+    "dev": "shopify app dev",
+    "dev:server": "react-router dev",
+    "build": "npm run sync:cms-schema && npm run db:generate && react-router build",
+    "start": "react-router-serve ./build/server/index.js",
+    "docker-start": "npm run db:setup && npm run start",
+    "typecheck": "npm run sync:cms-schema && react-router typegen && tsc --noEmit",
+    "test": "npm run sync:cms-schema && vitest run",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:setup": "npm run db:generate && npm run db:migrate",
+    "shopify": "shopify"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "@react-router/node": "^7.18.2",
+    "@react-router/serve": "^7.18.2",
+    "@shopify/app-bridge-react": "^4.3.0",
+    "@shopify/polaris-types": "^1.0.1",
+    "@shopify/shopify-app-react-router": "^4.0.3",
+    "@shopify/shopify-app-session-storage-prisma": "^11.0.3",
+    "isbot": "^5.1.31",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router": "^7.18.2"
+  },
+  "overrides": {
+    "deepmerge-ts": "^8.0.2"
+  },
+  "devDependencies": {
+    "@react-router/dev": "^7.18.2",
+    "@types/node": "^24.10.0",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^5.1.1",
+    "@shopify/cli": "^5.0.1",
+    "prisma": "^6.19.0",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1",
+    "vitest": "^5.1.0",
+    "jsdom": "^31.0.1",
+    "@testing-library/react": "^16.3.3"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "esbuild@0.28.1": true,
+    "esbuild@0.25.12": true
+  }
+}

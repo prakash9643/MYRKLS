@@ -338,11 +338,6 @@ export const MyrklsProductHeroSection: React.FC<MyrklsProductHeroSectionProps> =
                     {product.originalPrice}
                   </span>
                 )}
-                {product.discount && (
-                  <span className="px-2.5 py-0.5 bg-[#FF5A1F] text-white text-[11px] font-bold uppercase tracking-wider rounded-none">
-                    {product.discount}
-                  </span>
-                )}
               </div>
 
               <div className="text-right">

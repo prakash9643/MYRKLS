@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { useCart } from '../context/MyrklsCartContext';
+import { formatShopifyMoney } from '../shopify/presentation';
+import { useAnalyticsConsent } from '../analytics/ConsentProvider';
+import { trackEcommerceEvent } from '../analytics/analytics';
+import { toCartEcommercePayload } from '../analytics/events';
 
 export interface MyrklsCartDrawerProps {
   onNavigateViewAll?: () => void;
@@ -21,23 +26,57 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
     removeFromCart,
     totalCount,
     formattedSubtotal,
+    isShopifyCart,
+    isCartLoading,
+    isCartMutating,
+    cartError,
+    checkoutUrl,
+    shopifyCart,
+    prepareShopifyCheckout,
+    dismissCartError,
   } = useCart();
 
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
+  const [isPreparingCheckout, setIsPreparingCheckout] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const checkoutInFlightRef = useRef(false);
+  const cartViewTrackedRef = useRef(false);
+  const hasUnavailableLine = shopifyCart?.lines.some((line) => !line.availableForSale) || false;
+  const { consent } = useAnalyticsConsent();
 
-  // Close on Escape key press
+  // Keep keyboard focus inside the modal drawer while it is open.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        closeCart();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, closeCart]);
+    if (!isOpen) return;
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    closeButtonRef.current?.focus();
+    return () => previousFocusRef.current?.focus();
+  }, [isOpen]);
 
-  // Lock body scroll when drawer is open
   useEffect(() => {
+    if (!isOpen) {
+      cartViewTrackedRef.current = false;
+      return;
+    }
+    if (
+      cartViewTrackedRef.current ||
+      !isShopifyCart ||
+      isCartLoading ||
+      !shopifyCart ||
+      shopifyCart.lines.length === 0
+    ) {
+      return;
+    }
+    cartViewTrackedRef.current = trackEcommerceEvent(
+      'view_cart',
+      toCartEcommercePayload(shopifyCart)
+    );
+  }, [consent?.analytics, isCartLoading, isOpen, isShopifyCart, shopifyCart]);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     if (isOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -45,12 +84,58 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
       setCheckoutNotice(null);
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen]);
 
-  const handleCheckout = () => {
-    if (items.length === 0) return;
+  const handleDialogKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Escape') {
+      closeCart();
+      return;
+    }
+    if (event.key !== 'Tab' || !dialogRef.current) return;
+    const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  const handleCheckout = async () => {
+    if (items.length === 0 || checkoutInFlightRef.current) return;
+    if (isShopifyCart) {
+      if (isCartMutating || isCartLoading || hasUnavailableLine) {
+        setCheckoutNotice('Your cart is still being updated. Please try again in a moment.');
+        return;
+      }
+      checkoutInFlightRef.current = true;
+      setIsPreparingCheckout(true);
+      setCheckoutNotice('Preparing your secure Shopify checkout…');
+      try {
+        const freshCheckoutUrl = await prepareShopifyCheckout();
+        setCheckoutNotice('Redirecting to Shopify…');
+        await new Promise<void>((resolve) => {
+          window.requestAnimationFrame(() => resolve());
+        });
+        closeCart();
+        window.location.assign(freshCheckoutUrl);
+      } catch {
+        setCheckoutNotice(
+          'Secure checkout could not be prepared. Your cart is still available; please try again.'
+        );
+        checkoutInFlightRef.current = false;
+        setIsPreparingCheckout(false);
+      }
+      return;
+    }
     closeCart();
     if (onNavigateCheckout) {
       onNavigateCheckout();
@@ -84,24 +169,41 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Shopping Cart Drawer"
+    <AnimatePresence>
+    {isOpen && <motion.div
+      key="myrkls-cart-dialog"
       className="fixed inset-0 z-50 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.18 }}
     >
       {/* 1. Backdrop Overlay */}
-      <div
+      <motion.button
+        type="button"
+        aria-label="Close cart drawer"
         onClick={closeCart}
-        className="fixed inset-0 bg-black/65 backdrop-blur-xs transition-opacity duration-300 animate-fadeIn"
+        className="fixed inset-0 h-full w-full bg-black/65 backdrop-blur-xs"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
       />
 
       {/* 2. Sliding Drawer Panel (Strict Black & Orange Palette) */}
-      <div className="fixed inset-y-0 right-0 max-w-full flex">
-        <div className="w-screen max-w-full sm:w-[420px] bg-[#FAFAF8] text-[#111111] shadow-2xl border-l border-[#E5E0D8] flex flex-col justify-between transition-transform duration-300 ease-out animate-slideInRight select-none">
+      <motion.div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping Cart Drawer"
+        tabIndex={-1}
+        onKeyDown={handleDialogKeyDown}
+        className="fixed inset-y-0 right-0 flex h-full w-screen max-w-full flex-col justify-between border-l border-[#E5E0D8] bg-[#FAFAF8] text-[#111111] shadow-2xl sm:w-[420px] select-none"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+      >
           {/* ======================================================== */}
           {/* DRAWER HEADER: TITLE & CLOSE BUTTON                      */}
           {/* ======================================================== */}
@@ -116,6 +218,7 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
             </div>
 
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={closeCart}
               aria-label="Close cart drawer"
@@ -129,7 +232,24 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
           {/* DRAWER BODY: ITEMS LIST OR CLEAN EMPTY STATE            */}
           {/* ======================================================== */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-            {items.length === 0 ? (
+            {cartError && isShopifyCart && (
+              <div role="alert" className="flex items-start justify-between gap-3 border border-[#E6C7C2] bg-[#FFF9F8] px-3 py-2.5 text-[12px] text-[#8F382E]">
+                <span>{cartError}</span>
+                <button
+                  type="button"
+                  onClick={dismissCartError}
+                  aria-label="Dismiss cart error"
+                  className="shrink-0 text-[#8F382E] hover:text-[#5E201A]"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+            {isShopifyCart && isCartLoading ? (
+              <div role="status" className="flex min-h-48 items-center justify-center text-[13px] text-[#5A6660]">
+                Loading your Shopify cart…
+              </div>
+            ) : items.length === 0 ? (
               /* EMPTY CART VIEW */
               <div className="h-full flex flex-col items-center justify-center text-center py-16 px-4">
                 <div className="w-16 h-16 border border-[#DDD8D0] bg-white flex items-center justify-center mb-4 rounded-none">
@@ -141,7 +261,7 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
                 </h3>
 
                 <p className="mt-2 text-[13px] font-sans text-[#666666] max-w-[280px] leading-relaxed">
-                  Explore our 7 clinical formulations engineered for visible cellular renewal.
+                  Explore the formulations available in our current catalog.
                 </p>
 
                 <button
@@ -162,61 +282,83 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
                     className="p-3 sm:p-3.5 bg-white border border-[#E5E0D8] rounded-none flex items-start gap-3.5 hover:border-[#000000] transition-colors"
                   >
                     {/* Product Image Thumbnail */}
-                    <div
+                    <button
+                      type="button"
                       onClick={() => handleItemClick(item.productId)}
+                      aria-label={`View ${item.name}`}
                       className="w-20 h-20 min-w-[80px] max-w-[80px] min-h-[80px] max-h-[80px] bg-[#F4F2ED] border border-[#EAE6DF] shrink-0 overflow-hidden cursor-pointer rounded-none"
                     >
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                      />
-                    </div>
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt=""
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                        />
+                      ) : (
+                        <ShoppingBag size={20} className="mx-auto text-[#888888]" aria-hidden="true" />
+                      )}
+                    </button>
 
                     {/* Product Metadata & Quantity Controls */}
                     <div className="min-w-0 flex-1 flex flex-col justify-between h-full">
                       <div>
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[9px] font-sans font-bold tracking-[0.14em] uppercase text-[#FF5A1F] truncate block">
-                            {item.category}
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleItemClick(item.productId)}
+                            className="text-left font-['Syne',sans-serif] text-[14px] font-bold uppercase text-[#111111] hover:text-[#FF5A1F] transition-colors truncate cursor-pointer leading-snug"
+                          >
+                            {item.name}
+                          </button>
                           <button
                             type="button"
                             onClick={() => removeFromCart(item.id)}
+                            disabled={isShopifyCart && isCartMutating}
                             aria-label={`Remove ${item.name} from cart`}
-                            className="text-[#888888] hover:text-[#FF5A1F] transition-colors p-0.5 cursor-pointer"
+                            className="text-[#888888] hover:text-[#FF5A1F] transition-colors p-0.5 cursor-pointer shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Trash2 size={13} />
                           </button>
                         </div>
-
-                        <h4
-                          onClick={() => handleItemClick(item.productId)}
-                          className="font-['Syne',sans-serif] text-[14px] font-bold uppercase text-[#111111] hover:text-[#FF5A1F] transition-colors truncate cursor-pointer leading-snug mt-0.5"
-                        >
-                          {item.name}
-                        </h4>
 
                         {item.size && (
                           <span className="text-[11px] font-sans text-[#777777] block mt-0.5">
                             {item.size}
                           </span>
                         )}
+                        {isShopifyCart &&
+                          shopifyCart?.lines.find((line) => line.id === item.id)
+                            ?.availableForSale === false && (
+                            <span className="mt-1 block text-[10px] font-bold uppercase text-[#9B4A3F]">
+                              Currently unavailable
+                            </span>
+                          )}
                       </div>
 
                       {/* Price and Quantity Selector */}
                       <div className="mt-3 flex items-center justify-between pt-2 border-t border-[#F2EFE9]">
-                        <span className="text-[14px] font-bold font-sans text-[#111111]">
-                          {item.price}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="text-[14px] font-bold font-sans text-[#111111]">
+                            {item.price}
+                          </span>
+                          {item.lineTotal && (
+                            <span className="text-[10px] font-sans text-[#777777]">
+                              Line total {item.lineTotal}
+                            </span>
+                          )}
+                        </div>
 
                         {/* Quantity (+ / -) Selector */}
                         <div className="flex items-center border border-[#DDD8D0] bg-[#FAFAF8] rounded-none">
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            disabled={
+                              isShopifyCart &&
+                              (isCartMutating || !shopifyCart?.lines.find((line) => line.id === item.id)?.availableForSale)
+                            }
                             aria-label="Decrease quantity"
-                            className="w-7 h-7 flex items-center justify-center text-[#111111] hover:bg-[#000000] hover:text-white transition-colors cursor-pointer"
+                            className="w-7 h-7 flex items-center justify-center text-[#111111] hover:bg-[#000000] hover:text-white transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Minus size={11} strokeWidth={2} />
                           </button>
@@ -228,8 +370,12 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
                           <button
                             type="button"
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            disabled={
+                              isShopifyCart &&
+                              (isCartMutating || !shopifyCart?.lines.find((line) => line.id === item.id)?.availableForSale)
+                            }
                             aria-label="Increase quantity"
-                            className="w-7 h-7 flex items-center justify-center text-[#111111] hover:bg-[#000000] hover:text-white transition-colors cursor-pointer"
+                            className="w-7 h-7 flex items-center justify-center text-[#111111] hover:bg-[#000000] hover:text-white transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Plus size={11} strokeWidth={2} />
                           </button>
@@ -254,17 +400,34 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
                     SUBTOTAL
                   </span>
                   <span className="text-[10px] font-sans text-[#888888]">
-                    Complimentary clinical delivery across India
+                    Shipping, taxes and applicable discounts are finalized at checkout.
                   </span>
                 </div>
                 <span className="font-['Syne',sans-serif] text-[20px] font-bold text-[#111111]">
                   {formattedSubtotal}
                 </span>
               </div>
+              {isShopifyCart && shopifyCart && (
+                <div className="flex items-baseline justify-between border-t border-[#F0EBE3] pt-3">
+                  <span className="text-[11px] font-sans font-bold tracking-[0.12em] uppercase text-[#777777]">
+                    ESTIMATED TOTAL
+                  </span>
+                  <span className="font-['Syne',sans-serif] text-[16px] font-bold text-[#111111]">
+                    {formatShopifyMoney(
+                      shopifyCart.cost.totalAmount.amount,
+                      shopifyCart.cost.totalAmount.currencyCode
+                    )}
+                  </span>
+                </div>
+              )}
 
               {/* Notice if checkout clicked */}
               {checkoutNotice && (
-                <div className="p-2.5 bg-[#FAF9F7] border border-[#DDD8D0] text-[11px] font-sans text-[#111111] leading-relaxed animate-fadeIn">
+                <div
+                  role={isPreparingCheckout ? 'status' : 'alert'}
+                  aria-live={isPreparingCheckout ? 'polite' : 'assertive'}
+                  className="p-2.5 bg-[#FAF9F7] border border-[#DDD8D0] text-[11px] font-sans text-[#111111] leading-relaxed animate-fadeIn"
+                >
                   <div className="flex items-start gap-1.5">
                     <Sparkles size={12} className="text-[#FF5A1F] shrink-0 mt-0.5" />
                     <span>{checkoutNotice}</span>
@@ -276,9 +439,23 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
               <button
                 type="button"
                 onClick={handleCheckout}
-                className="w-full py-3.5 bg-[#000000] hover:bg-[#FF5A1F] active:scale-[0.99] text-white text-[12px] font-sans font-bold tracking-[0.18em] uppercase rounded-none flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-sm"
+                disabled={
+                  isShopifyCart &&
+                  (!checkoutUrl ||
+                    isCartMutating ||
+                    isCartLoading ||
+                    hasUnavailableLine ||
+                    isPreparingCheckout)
+                }
+                className="w-full py-3.5 bg-[#000000] hover:bg-[#FF5A1F] active:scale-[0.99] text-white text-[12px] font-sans font-bold tracking-[0.18em] uppercase rounded-none flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span>CHECKOUT</span>
+                <span>
+                  {isPreparingCheckout
+                    ? 'PREPARING SECURE CHECKOUT…'
+                    : isShopifyCart
+                      ? 'CONTINUE TO SHOPIFY CHECKOUT'
+                      : 'CHECKOUT'}
+                </span>
                 <ArrowRight size={14} />
               </button>
 
@@ -298,9 +475,9 @@ export const MyrklsCartDrawer: React.FC<MyrklsCartDrawerProps> = ({
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>}
+    </AnimatePresence>
   );
 };
 

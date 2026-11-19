@@ -64,7 +64,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-incarnation',
       productId: 'incarnation',
-      productName: pIncarnation?.name || 'INCARNATION™',
+      productName: 'Skin Renewal Serum',
       category: pIncarnation?.category || 'SERUMS',
       price: pIncarnation?.price || '₹1,499',
       originalPrice: pIncarnation?.originalPrice || '₹1,799',
@@ -76,7 +76,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-sentinel',
       productId: 'sentinel',
-      productName: pSentinel?.name || 'SENTINEL™',
+      productName: 'Advanced Aqua Sunscreen',
       category: pSentinel?.category || 'SUN PROTECTION',
       price: pSentinel?.price || '₹1,399',
       originalPrice: pSentinel?.originalPrice || '₹1,649',
@@ -88,7 +88,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-awakening',
       productId: 'awakening',
-      productName: pAwakening?.name || 'AWAKENING™',
+      productName: 'Performance Gel Cleanser',
       category: pAwakening?.category || 'CLEANSERS',
       price: pAwakening?.price || '₹1,299',
       originalPrice: pAwakening?.originalPrice || '₹1,499',
@@ -100,7 +100,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-restoration',
       productId: 'restoration',
-      productName: pRestoration?.name || 'RESTORATION™',
+      productName: 'Pigment Repair Cream',
       category: pRestoration?.category || 'CREAMS',
       price: pRestoration?.price || '₹1,349',
       originalPrice: pRestoration?.originalPrice || '₹1,599',
@@ -112,7 +112,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-vision',
       productId: 'vision',
-      productName: pVision?.name || 'VISION™',
+      productName: 'Pigment Correct Serum',
       category: pVision?.category || 'SERUMS',
       price: pVision?.price || '₹1,449',
       originalPrice: pVision?.originalPrice || '₹1,799',
@@ -124,7 +124,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-rebirth',
       productId: 'rebirth',
-      productName: pRebirth?.name || 'REBIRTH™',
+      productName: 'Korean Recovery Serum',
       category: pRebirth?.category || 'SERUMS',
       price: pRebirth?.price || '₹1,599',
       originalPrice: pRebirth?.originalPrice || '₹1,899',
@@ -136,7 +136,7 @@ export function getMasterReels(): ReelItem[] {
     {
       id: 'reel-eternity',
       productId: 'eternity',
-      productName: pEternity?.name || 'ETERNITY™',
+      productName: 'Advance Longevity Cream',
       category: pEternity?.category || 'CREAMS',
       price: pEternity?.price || '₹1,649',
       originalPrice: pEternity?.originalPrice || '₹1,999',
@@ -244,24 +244,21 @@ const ReelCard: React.FC<{
               }
             }}
             className="w-full h-full object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
           />
         )}
 
         {/* Subtle top gradient for high badge legibility */}
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/60 via-black/20 to-transparent pointer-events-none" />
 
-        {/* Top Bar: Reel Tag, Discount Badge & Mute Toggle */}
-        <div className="absolute top-0 inset-x-0 z-10 p-3 sm:p-3.5 flex items-center justify-between pointer-events-auto">
+        {/* Top Bar: Reel Tag & Mute Toggle */}
+        <div className="absolute top-0 inset-x-0 z-10 p-2 sm:p-3.5 flex items-center justify-between pointer-events-auto">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="bg-black/75 backdrop-blur-md text-white text-[9px] font-sans font-bold tracking-[0.16em] uppercase px-2.5 py-1 rounded-none border border-white/20 flex items-center gap-1.5">
-              <Film size={11} className="text-[#FF5A1F]" />
+            <span className="bg-black/75 backdrop-blur-md text-white text-[8px] sm:text-[9px] font-sans font-bold tracking-[0.12em] sm:tracking-[0.16em] uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-none border border-white/20 flex items-center gap-1">
+              <Film size={10} className="text-[#FF5A1F]" />
               {reel.reelTag || 'ACTION'}
             </span>
-            {discount.hasDiscount && (
-              <span className="bg-[#FF5A1F] text-white text-[9px] font-sans font-bold tracking-[0.14em] uppercase px-2 py-1 rounded-none">
-                {discount.discountText}
-              </span>
-            )}
           </div>
 
           {reel.videoUrl && (
@@ -269,9 +266,9 @@ const ReelCard: React.FC<{
               type="button"
               onClick={toggleMute}
               aria-label={isMuted ? 'Unmute reel' : 'Mute reel'}
-              className="w-7 h-7 bg-black/75 backdrop-blur-md text-white hover:text-[#FF5A1F] border border-white/20 rounded-none flex items-center justify-center cursor-pointer transition-colors"
+              className="w-6 h-6 sm:w-7 sm:h-7 bg-black/75 backdrop-blur-md text-white hover:text-[#FF5A1F] border border-white/20 rounded-none flex items-center justify-center cursor-pointer transition-colors"
             >
-              {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+              {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
             </button>
           )}
         </div>
@@ -279,8 +276,8 @@ const ReelCard: React.FC<{
         {/* Play/Pause Overlay indicator when video is paused */}
         {reel.videoUrl && !isPlaying && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 pointer-events-none">
-            <div className="w-12 h-12 rounded-none bg-black/80 border border-white/30 flex items-center justify-center text-white">
-              <Play size={20} className="fill-white translate-x-0.5" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-none bg-black/80 border border-white/30 flex items-center justify-center text-white">
+              <Play size={18} className="fill-white translate-x-0.5" />
             </div>
           </div>
         )}
@@ -289,27 +286,24 @@ const ReelCard: React.FC<{
       {/* ======================================================== */}
       {/* 2. DOCKED COMMERCE DRAWER: PRODUCT, PRICE & SHOP NOW     */}
       {/* ======================================================== */}
-      <div className="relative z-10 p-3.5 sm:p-4 bg-white border-t border-[#E5E0D8] flex flex-col justify-between flex-grow">
+      <div className="relative z-10 p-2.5 sm:p-4 bg-white border-t border-[#E5E0D8] flex flex-col justify-between flex-grow">
         <div>
-          <span className="text-[9.5px] font-sans font-bold tracking-[0.16em] uppercase text-[#FF5A1F] block mb-0.5 truncate">
-            {reel.category}
-          </span>
           <button
             type="button"
             onClick={() => onNavigate(reel.productId)}
-            className="text-left font-['Syne',sans-serif] text-[15px] font-bold uppercase tracking-tight text-[#133429] hover:text-[#FF5A1F] transition-colors truncate block w-full cursor-pointer"
+            className="text-left font-['Syne',sans-serif] text-[12px] sm:text-[15px] font-bold uppercase tracking-tight text-[#133429] hover:text-[#FF5A1F] transition-colors truncate block w-full cursor-pointer leading-snug"
           >
             {reel.productName}
           </button>
         </div>
 
         {/* Price Line: Offer Price Highlighted + Strikethrough Original Price */}
-        <div className="mt-2.5 flex items-baseline gap-2">
-          <span className="text-[16px] font-bold font-sans text-[#133429]">
+        <div className="mt-1.5 sm:mt-2.5 flex items-baseline gap-1.5 sm:gap-2">
+          <span className="text-[13px] sm:text-[16px] font-bold font-sans text-[#133429]">
             {reel.price}
           </span>
           {discount.hasDiscount && (
-            <span className="text-[12.5px] font-sans text-[#8C9B93] line-through">
+            <span className="text-[11px] sm:text-[12.5px] font-sans text-[#8C9B93] line-through">
               {reel.originalPrice}
             </span>
           )}
@@ -319,9 +313,10 @@ const ReelCard: React.FC<{
         <button
           type="button"
           onClick={() => onNavigate(reel.productId)}
-          className="w-full mt-3 py-2.5 bg-[#111111] hover:bg-[#FF5A2A] active:scale-[0.99] text-white text-[11px] font-sans font-bold tracking-[0.16em] uppercase rounded-none flex items-center justify-center gap-1.5 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] focus:ring-offset-2"
+          className="w-full mt-2 sm:mt-3 py-2 sm:py-2.5 bg-[#111111] hover:bg-[#FF5A2A] active:scale-[0.99] text-white text-[9.5px] sm:text-[11px] font-sans font-bold tracking-[0.12em] sm:tracking-[0.16em] uppercase rounded-none flex items-center justify-center gap-1 sm:gap-1.5 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] focus:ring-offset-2"
         >
-          SHOP NOW &rarr;
+          <span>SHOP NOW</span>
+          <span>&rarr;</span>
         </button>
       </div>
     </div>
@@ -375,9 +370,10 @@ export const MyrklsProductReelsSection: React.FC<MyrklsProductReelsSectionProps>
     const el = sliderRef.current;
     if (!el) return;
     const firstCard = el.firstElementChild as HTMLElement;
-    const cardWidth = firstCard ? firstCard.clientWidth + 24 : el.clientWidth / 2;
-    // Scroll 1 card on small screen, 2 cards on desktop
-    const scrollAmount = window.innerWidth >= 1024 ? cardWidth * 2 : cardWidth;
+    const gap = window.innerWidth >= 640 ? 24 : 12;
+    const cardWidth = firstCard ? firstCard.clientWidth + gap : el.clientWidth / 2;
+    // Scroll 2 cards on desktop, 2 cards on mobile
+    const scrollAmount = cardWidth * 2;
 
     el.scrollBy({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
@@ -449,7 +445,7 @@ export const MyrklsProductReelsSection: React.FC<MyrklsProductReelsSectionProps>
         </div>
 
         {/* ======================================================== */}
-        {/* 2. REELS CAROUSEL: 4 CARDS PER ROW ON 1440PX DESKTOP     */}
+        {/* 2. REELS CAROUSEL: 2 CARDS PER VIEW ON MOBILE, 4 ON DESKTOP */}
         {/* ======================================================== */}
         <div className="pt-8 sm:pt-10">
           <div
@@ -457,7 +453,7 @@ export const MyrklsProductReelsSection: React.FC<MyrklsProductReelsSectionProps>
             tabIndex={0}
             role="region"
             aria-label="Shoppable video reels carousel"
-            className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-none pb-4 focus:outline-none"
+            className="flex gap-3 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-none pb-4 focus:outline-none"
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
@@ -466,7 +462,7 @@ export const MyrklsProductReelsSection: React.FC<MyrklsProductReelsSectionProps>
             {sortedReels.map((reel) => (
               <div
                 key={reel.id}
-                className="w-[78vw] sm:w-[calc((100%-1.5rem)/2)] md:w-[calc((100%-2*1.5rem)/3)] lg:w-[calc((100%-3*1.5rem)/4)] shrink-0 snap-start"
+                className="w-[calc((100%-0.75rem)/2)] sm:w-[calc((100%-1.5rem)/2)] md:w-[calc((100%-2*1.5rem)/3)] lg:w-[calc((100%-3*1.5rem)/4)] shrink-0 snap-start"
               >
                 <ReelCard reel={reel} onNavigate={handleNavigate} />
               </div>

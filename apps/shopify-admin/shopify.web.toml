@@ -1,0 +1,7 @@
+@'
+roles = ["frontend", "backend"]
+
+[commands]
+dev = "npm run dev:server"
+build = "npm run build"
+'@ | Set-Content -Path .\shopify.web.toml -Encoding utf8

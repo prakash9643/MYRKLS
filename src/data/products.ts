@@ -9,7 +9,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
   {
     id: 'vision',
     name: 'VISION™',
-    categoryTitle: 'Multi-Pathway Pigment Corrector',
+    categoryTitle: 'Pigment Correct Serum',
     category: 'SERUMS',
     categoryPill: 'CLINICAL SERUM · 30 mL',
     number: '01',
@@ -44,7 +44,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
   {
     id: 'incarnation',
     name: 'INCARNATION™',
-    categoryTitle: 'Retinal Longevity / Skin Renewal Serum',
+    categoryTitle: 'Skin Renewal Serum',
     category: 'SERUMS',
     categoryPill: 'CLINICAL SERUM · 30 mL',
     number: '02',
@@ -80,7 +80,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
   {
     id: 'rebirth',
     name: 'REBIRTH™',
-    categoryTitle: 'Korean Biotech Recovery Serum',
+    categoryTitle: 'Korean Recovery Serum',
     category: 'SERUMS',
     categoryPill: 'CLINICAL SERUM · 30 mL',
     number: '03',
@@ -116,7 +116,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
   {
     id: 'eternity',
     name: 'ETERNITY™',
-    categoryTitle: 'Advanced Longevity Cream',
+    categoryTitle: 'Advance Longevity Cream',
     category: 'CREAMS',
     categoryPill: 'BARRIER CREAM · 50 g',
     number: '04',
@@ -151,7 +151,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
   {
     id: 'restoration',
     name: 'RESTORATION™',
-    categoryTitle: 'Plumping Pigment-Repair Cream',
+    categoryTitle: 'Pigment Repair Cream',
     category: 'CREAMS',
     categoryPill: 'BARRIER CREAM · 50 g',
     number: '05',
@@ -221,7 +221,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
   {
     id: 'sentinel',
     name: 'SENTINEL™',
-    categoryTitle: 'Advanced Aqua Sunscreen SPF 50+ PA++++',
+    categoryTitle: 'Advanced Aqua Sunscreen',
     category: 'SUN PROTECTION',
     categoryPill: 'AQUA SUNSCREEN · 50 mL',
     number: '07',
@@ -258,7 +258,7 @@ export const ALL_MYRKLS_PRODUCTS: MyrklsProductDetail[] = [
 
 export const PRODUCT_HERO_CONFIGS: Record<string, ProductHeroConfig> = {
   vision: {
-    category: 'PIGMENT CORRECTING SERUM',
+    category: 'PIGMENT CORRECT SERUM',
     name: 'VISION™',
     shortDescription:
       'A high-performance brightening serum engineered to visibly fade persistent dark spots, reduce the look of uneven pigmentation, and restore luminous skin clarity.',
@@ -274,7 +274,7 @@ export const PRODUCT_HERO_CONFIGS: Record<string, ProductHeroConfig> = {
     bestFor: ['Dark Spots', 'Uneven Tone', 'Pigmentation', 'Radiance'],
   },
   incarnation: {
-    category: 'RETINAL SKIN RENEWAL SERUM',
+    category: 'SKIN RENEWAL SERUM',
     name: 'INCARNATION™',
     shortDescription:
       'Your nighttime essential for smoother-looking, renewed skin. Powered by stabilized retinal and advanced peptides to target fine lines and improve uneven texture.',
@@ -290,7 +290,7 @@ export const PRODUCT_HERO_CONFIGS: Record<string, ProductHeroConfig> = {
     bestFor: ['Fine Lines', 'Wrinkles', 'Skin Firmness', 'Uneven Texture'],
   },
   rebirth: {
-    category: 'SKIN RECOVERY SERUM',
+    category: 'KOREAN RECOVERY SERUM',
     name: 'REBIRTH™',
     shortDescription:
       'An intensive recovery serum formulated with plant-derived bio-actives and peptides to soothe skin discomfort, replenish moisture, and support a resilient barrier.',
@@ -306,7 +306,7 @@ export const PRODUCT_HERO_CONFIGS: Record<string, ProductHeroConfig> = {
     bestFor: ['Skin Conditioning', 'Hydration', 'Barrier Support', 'Skin Comfort'],
   },
   eternity: {
-    category: 'ADVANCED LONGEVITY CREAM',
+    category: 'ADVANCE LONGEVITY CREAM',
     name: 'ETERNITY™',
     shortDescription:
       'A rich, peptide-powered longevity moisturizer designed to support skin firmness, visibly soften expression lines, and replenish essential barrier lipids.',
@@ -322,7 +322,7 @@ export const PRODUCT_HERO_CONFIGS: Record<string, ProductHeroConfig> = {
     bestFor: ['Fine Lines', 'Skin Firmness', 'Uneven Texture', 'Barrier Support'],
   },
   restoration: {
-    category: 'PLUMPING + PIGMENT-REPAIR CREAM',
+    category: 'PIGMENT REPAIR CREAM',
     name: 'RESTORATION™',
     shortDescription:
       'A deeply hydrating moisturizer designed to visibly plump skin, improve the look of uneven tone and support a stronger-feeling skin barrier.',
@@ -354,7 +354,7 @@ export const PRODUCT_HERO_CONFIGS: Record<string, ProductHeroConfig> = {
     bestFor: ['Daily Cleansing', 'Excess Oil', 'Rough Texture', 'Skin Freshness'],
   },
   sentinel: {
-    category: 'ADVANCED AQUA SUNSCREEN SPF 50+ PA++++',
+    category: 'ADVANCED AQUA SUNSCREEN',
     name: 'SENTINEL™',
     shortDescription:
       'An ultralight, invisible fluid sunscreen delivering broad-spectrum SPF 50+ PA++++ photoprotection with zero white cast and skin-soothing comfort.',

@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShoppingBag, ArrowRight, User, ChevronDown, Sparkles, Menu, X, ChevronRight } from 'lucide-react';
-import { MyrklsAuthModal } from './MyrklsAuthModal';
 import { MyrklsSearchModal } from './MyrklsSearchModal';
 import { useCart } from '../context/MyrklsCartContext';
-import { useAuth } from '../context/MyrklsAuthContext';
+import { useShopifyCustomerAccount } from '../context/ShopifyCustomerAccountContext';
 
 interface ShopCategory {
   id: string;
@@ -65,6 +64,9 @@ interface MyrklsHeaderProps {
   onNavigateHome?: () => void;
   onNavigateProduct?: (productId: string) => void;
   onNavigateAccount?: () => void;
+  onNavigateOurScience?: () => void;
+  onNavigateAboutUs?: () => void;
+  onNavigateContactUs?: () => void;
   cartCount?: number;
 }
 
@@ -73,18 +75,19 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
   onNavigateHome,
   onNavigateProduct,
   onNavigateAccount,
-  cartCount = 0,
+  onNavigateOurScience,
+  onNavigateAboutUs,
+  onNavigateContactUs,
 }) => {
-  const { isAuthenticated } = useAuth();
+  const { status } = useShopifyCustomerAccount();
+  const isAuthenticated = status === 'authenticated';
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [isShopMenuOpen, setIsShopMenuOpen] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileShopExpanded, setIsMobileShopExpanded] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { openCart, totalCount: contextTotalCount } = useCart();
-  const displayCartCount = cartCount > 0 ? cartCount : contextTotalCount;
+  const displayCartCount = contextTotalCount;
   const shopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleAccountClick = () => {
@@ -96,8 +99,12 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else {
-      setAuthMode('login');
-      setIsAuthOpen(true);
+      if (onNavigateAccount) {
+        onNavigateAccount();
+      } else {
+        window.location.hash = '#account';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   };
 
@@ -181,6 +188,33 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
 
   const handleMobileNavClick = (href: string) => {
     setIsMobileNavOpen(false);
+    if (href === '#our-science') {
+      if (onNavigateOurScience) {
+        onNavigateOurScience();
+      } else {
+        window.location.hash = '#our-science';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+    if (href === '#about-us') {
+      if (onNavigateAboutUs) {
+        onNavigateAboutUs();
+      } else {
+        window.location.hash = '#about-us';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+    if (href === '#contact-us') {
+      if (onNavigateContactUs) {
+        onNavigateContactUs();
+      } else {
+        window.location.hash = '#contact-us';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
     const targetEl = document.querySelector(href);
     if (!targetEl) {
       if (onNavigateHome) {
@@ -278,8 +312,7 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
             </div>
 
             {[
-              { name: 'Our Science', href: '#our-formulation-philosophy' },
-              { name: 'Innovations', href: '#featured-innovation' },
+              { name: 'Our Science', href: '#our-science' },
               { name: 'About Us', href: '#about-us' },
               { name: 'Contact Us', href: '#contact-us' },
             ].map((link) => (
@@ -287,6 +320,27 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
                 key={link.name}
                 href={link.href}
                 onClick={(e) => {
+                  if (link.href === '#our-science') {
+                    if (onNavigateOurScience) {
+                      e.preventDefault();
+                      onNavigateOurScience();
+                    }
+                    return;
+                  }
+                  if (link.href === '#about-us') {
+                    if (onNavigateAboutUs) {
+                      e.preventDefault();
+                      onNavigateAboutUs();
+                    }
+                    return;
+                  }
+                  if (link.href === '#contact-us') {
+                    if (onNavigateContactUs) {
+                      e.preventDefault();
+                      onNavigateContactUs();
+                    }
+                    return;
+                  }
                   if (onNavigateHome) {
                     const targetEl = document.querySelector(link.href);
                     if (!targetEl) {
@@ -342,13 +396,9 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
               className="w-10 h-10 flex items-center justify-center text-[#1C1C1C] hover:text-[#FF5A1F] transition-colors relative cursor-pointer"
             >
               <ShoppingBag size={19} strokeWidth={1.5} />
-              {displayCartCount > 0 ? (
-                <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-[#FF5A1F] text-white text-[9.5px] font-bold font-sans flex items-center justify-center rounded-none shadow-xs">
-                  {displayCartCount}
-                </span>
-              ) : (
-                <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-[#FF5A1F] rounded-full" />
-              )}
+              <span className="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 bg-[#FF5A1F] text-white text-[9.5px] font-bold font-sans flex items-center justify-center rounded-none shadow-xs">
+                {displayCartCount}
+              </span>
             </button>
 
           </div>
@@ -466,15 +516,12 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
                           <Sparkles size={11} className="text-[#FF5A1F]" />
                           FEATURED PRODUCT
                         </span>
-                        <span className="text-[10px] font-sans text-white bg-white/15 px-2 py-0.5 uppercase tracking-[0.08em] font-bold">
-                          18% OFF
-                        </span>
                       </div>
 
                       <div className="relative w-full h-28 sm:h-32 overflow-hidden mb-3 bg-[#07130B] border border-white/10">
                         <img
                           src="/myrkls-sec4-incarnation-lab.webp"
-                          alt="MYRKLS INCARNATION Retinal Skin Renewal Serum"
+                          alt="MYRKLS INCARNATION Skin Renewal Serum"
                           className="w-full h-full object-cover object-center transition-transform duration-600 ease-out group-hover:scale-106"
                           loading="lazy"
                           decoding="async"
@@ -486,7 +533,7 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
                         INCARNATION™
                       </h3>
                       <span className="text-[11px] font-sans text-[#A5CBAE] font-medium block mt-0.5">
-                        Retinal Skin Renewal Serum
+                        Skin Renewal Serum
                       </span>
                       <p className="text-[11.5px] text-[#C5D3CA] font-sans mt-1.5 line-clamp-2 leading-relaxed">
                         Your nighttime essential for smoother-looking skin, fine line care and visible renewal.
@@ -677,7 +724,7 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
                   {/* 2. OUR SCIENCE */}
                   <button
                     type="button"
-                    onClick={() => handleMobileNavClick('#our-formulation-philosophy')}
+                    onClick={() => handleMobileNavClick('#our-science')}
                     className="w-full flex items-center justify-between py-3.5 text-left font-['Syne',sans-serif] text-[17px] font-bold uppercase tracking-tight text-[#133429] hover:text-[#FF5A1F] transition-colors border-b border-[#EAE6DF]"
                   >
                     <span className="flex items-center gap-2.5">
@@ -687,46 +734,33 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
                     <ChevronRight size={17} className="text-[#8C9890]" />
                   </button>
 
-                  {/* 3. INNOVATIONS */}
-                  <button
-                    type="button"
-                    onClick={() => handleMobileNavClick('#featured-innovation')}
-                    className="w-full flex items-center justify-between py-3.5 text-left font-['Syne',sans-serif] text-[17px] font-bold uppercase tracking-tight text-[#133429] hover:text-[#FF5A1F] transition-colors border-b border-[#EAE6DF]"
-                  >
-                    <span className="flex items-center gap-2.5">
-                      <span className="text-[11px] font-mono text-[#7A857E] font-medium">03</span>
-                      <span>INNOVATIONS</span>
-                    </span>
-                    <ChevronRight size={17} className="text-[#8C9890]" />
-                  </button>
-
-                  {/* 4. ABOUT US */}
+                  {/* 3. ABOUT US */}
                   <button
                     type="button"
                     onClick={() => handleMobileNavClick('#about-us')}
                     className="w-full flex items-center justify-between py-3.5 text-left font-['Syne',sans-serif] text-[17px] font-bold uppercase tracking-tight text-[#133429] hover:text-[#FF5A1F] transition-colors border-b border-[#EAE6DF]"
                   >
                     <span className="flex items-center gap-2.5">
-                      <span className="text-[11px] font-mono text-[#7A857E] font-medium">04</span>
+                      <span className="text-[11px] font-mono text-[#7A857E] font-medium">03</span>
                       <span>ABOUT US</span>
                     </span>
                     <ChevronRight size={17} className="text-[#8C9890]" />
                   </button>
 
-                  {/* 5. CONTACT US */}
+                  {/* 4. CONTACT US */}
                   <button
                     type="button"
                     onClick={() => handleMobileNavClick('#contact-us')}
                     className="w-full flex items-center justify-between py-3.5 text-left font-['Syne',sans-serif] text-[17px] font-bold uppercase tracking-tight text-[#133429] hover:text-[#FF5A1F] transition-colors border-b border-[#EAE6DF]"
                   >
                     <span className="flex items-center gap-2.5">
-                      <span className="text-[11px] font-mono text-[#7A857E] font-medium">05</span>
+                      <span className="text-[11px] font-mono text-[#7A857E] font-medium">04</span>
                       <span>CONTACT US</span>
                     </span>
                     <ChevronRight size={17} className="text-[#8C9890]" />
                   </button>
 
-                  {/* 6. MY ACCOUNT */}
+                  {/* 5. MY ACCOUNT */}
                   <button
                     type="button"
                     onClick={() => {
@@ -764,23 +798,6 @@ export const MyrklsHeader: React.FC<MyrklsHeaderProps> = ({
           </>
         )}
       </AnimatePresence>
-
-      {/* ======================================================== */}
-      {/* CINEMATIC AUTHENTICATION POPUP MODAL                     */}
-      {/* ======================================================== */}
-      <MyrklsAuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        initialMode={authMode}
-        onSuccess={() => {
-          if (onNavigateAccount) {
-            onNavigateAccount();
-          } else {
-            window.location.hash = '#account';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        }}
-      />
 
       {/* ======================================================== */}
       {/* PREMIUM PRODUCT SEARCH OVERLAY MODAL                    */}

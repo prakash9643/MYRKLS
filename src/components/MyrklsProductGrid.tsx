@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
-import { ShoppingBag, Heart, Star, Check } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ShoppingBag, Heart, Star, Check, ArrowRight } from 'lucide-react';
 import { useCart } from '../context/MyrklsCartContext';
 
 import { ALL_MYRKLS_PRODUCTS } from '../data/products';
+import { readShopifyConfig } from '../shopify/config';
+import {
+  formatCompareAtPrice,
+  formatProductPrice,
+  getProductImage,
+  getShopifyImageSrcSet,
+  getShopifyImageUrl,
+} from '../shopify/presentation';
+import { getProducts } from '../shopify/services/products';
+import { useShopifyQuery } from '../shopify/use-shopify-query';
+import type { ShopifyProduct } from '../shopify/types';
+import { ShopifyQueryNotice } from './ShopifyQueryNotice';
+import { productPath } from '../routing/routes';
+import { useAnalyticsConsent } from '../analytics/ConsentProvider';
+import { trackEcommerceEvent } from '../analytics/analytics';
+import { toAnalyticsItem } from '../analytics/events';
 
 interface Product {
   id: string;
@@ -14,14 +30,29 @@ interface Product {
   reviews: number;
   price: string;
   originalPrice: string;
-  image: string;
+  image: string | null;
   href: string;
+  routeId?: string;
+  isShopifyProduct?: boolean;
+  availableForSale?: boolean;
+  merchandiseId?: string;
+  shopifyProduct?: ShopifyProduct;
 }
+
+const PRODUCT_NAMES: Record<string, string> = {
+  vision: 'Pigment Correct Serum',
+  incarnation: 'Skin Renewal Serum',
+  rebirth: 'Korean Recovery Serum',
+  eternity: 'Advance Longevity Cream',
+  restoration: 'Pigment Repair Cream',
+  awakening: 'Performance Gel Cleanser',
+  sentinel: 'Advanced Aqua Sunscreen',
+};
 
 const products: Product[] = ALL_MYRKLS_PRODUCTS.slice(0, 6).map((p) => ({
   id: p.id,
   name: p.name.replace('™', ''),
-  fullName: `${p.name.replace('™', '')} ${p.categoryTitle}`,
+  fullName: PRODUCT_NAMES[p.id] || p.categoryTitle,
   category: p.category,
   discount: p.discount,
   rating: p.rating,
@@ -43,7 +74,57 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
 }) => {
   const [addedId, setAddedId] = useState<string | null>(null);
   const [wishlisted, setWishlisted] = useState<Record<string, boolean>>({});
-  const { addToCart } = useCart();
+  const { addToCart, addShopifyVariant, isCartAdding } = useCart();
+  const { consent } = useAnalyticsConsent();
+  const viewedListRef = useRef('');
+  const shopifyConfig = readShopifyConfig();
+  const shopifyMode = shopifyConfig.config !== null || shopifyConfig.error !== null;
+  const shopifyProducts = useShopifyQuery(
+    'homepage-featured-products',
+    (signal) => getProducts({ first: 6, signal }),
+    shopifyConfig.config !== null
+  );
+  const displayedProducts: Product[] =
+    shopifyProducts.state.status === 'success'
+      ? shopifyProducts.state.data.nodes.map((product: ShopifyProduct) => ({
+          id: product.id,
+          routeId: product.handle,
+          name: product.title,
+          fullName: product.productType || product.title,
+          category: product.productType,
+          discount: '',
+          rating: 0,
+          reviews: 0,
+          price: formatProductPrice(product),
+          originalPrice: formatCompareAtPrice(product) || '',
+          image: getProductImage(product)?.url || null,
+          href: productPath(product.handle),
+          isShopifyProduct: true,
+          availableForSale: product.availableForSale,
+          merchandiseId:
+            product.variants.length === 1 && product.variants[0].availableForSale
+              ? product.variants[0].id
+              : undefined,
+          shopifyProduct: product,
+        }))
+      : shopifyMode
+        ? []
+        : products;
+
+  useEffect(() => {
+    if (shopifyProducts.state.status !== 'success') return;
+    const shopifyItems = shopifyProducts.state.data.nodes;
+    if (shopifyItems.length === 0) return;
+    const listKey = shopifyItems.map((product) => product.id).join('|');
+    if (viewedListRef.current === listKey) return;
+    const items = shopifyItems.map((product) => toAnalyticsItem(product));
+    const sent = trackEcommerceEvent('view_item_list', {
+      item_list_id: 'homepage_featured_products',
+      item_list_name: 'Homepage featured products',
+      items,
+    });
+    if (sent) viewedListRef.current = listKey;
+  }, [consent?.analytics, consent?.marketing, shopifyProducts.state]);
 
   const handleAddToCart = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
@@ -87,15 +168,56 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
           }}
           className="bg-transparent border border-[#111111] text-[#111111] hover:bg-[#FF5A2A] hover:border-[#FF5A2A] hover:text-white px-5 py-2 text-[11px] font-bold tracking-[0.14em] uppercase transition-all duration-200 rounded-none inline-flex items-center justify-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] focus:ring-offset-2"
         >
-          VIEW ALL (07)
+          {shopifyMode && shopifyProducts.state.status === 'success'
+            ? `VIEW ALL (${String(shopifyProducts.state.data.nodes.length).padStart(2, '0')})`
+            : 'VIEW ALL (07)'}
         </button>
       </div>
 
       {/* 3-Column × 2-Row Edge-to-Edge Grid (3*2 Editorial Product Cards) */}
+      {shopifyMode &&
+      shopifyProducts.state.status !== 'success' ? (
+        <ShopifyQueryNotice
+          compact
+          status={
+            shopifyProducts.state.status === 'error'
+              ? 'error'
+              : 'loading'
+          }
+          message={
+            shopifyProducts.state.status === 'error'
+              ? shopifyProducts.state.message
+              : undefined
+          }
+          onRetry={shopifyProducts.state.status === 'error' ? shopifyProducts.retry : undefined}
+        />
+      ) : shopifyMode && displayedProducts.length === 0 ? (
+        <ShopifyQueryNotice
+          compact
+          status="empty"
+          message="No published Shopify products are available."
+        />
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 w-full">
-        {products.map((product) => {
+        {displayedProducts.map((product) => {
           const isAdded = addedId === product.id;
           const isWishlisted = !!wishlisted[product.id];
+          const routeId = product.routeId || product.id;
+          const shopifyImage = product.shopifyProduct
+            ? getProductImage(product.shopifyProduct)
+            : null;
+          const trackSelection = () => {
+            if (!product.shopifyProduct) return;
+            const item = toAnalyticsItem(product.shopifyProduct);
+            trackEcommerceEvent(
+              'select_item',
+              {
+                item_list_id: 'homepage_featured_products',
+                item_list_name: 'Homepage featured products',
+                items: [item],
+              }
+            );
+          };
 
           return (
             <article
@@ -110,28 +232,38 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
                   onClick={(e) => {
                     if (onSelectProduct) {
                       e.preventDefault();
-                      onSelectProduct(product.id);
+                      trackSelection();
+                      onSelectProduct(routeId);
                     }
                   }}
                   className="block w-full h-full cursor-pointer"
                 >
-                  <img
-                    src={product.image}
-                    alt={product.fullName}
-                    className="w-full h-full object-cover transition-transform duration-600 ease-out group-hover:scale-[1.03] select-none"
-                    loading="lazy"
-                  />
+                  {product.image ? (
+                    <img
+                      src={
+                        shopifyImage
+                          ? getShopifyImageUrl(shopifyImage.url, 720) || product.image || ''
+                          : product.image || ''
+                      }
+                      srcSet={
+                        shopifyImage
+                          ? getShopifyImageSrcSet(shopifyImage.url, [360, 720, 1080])
+                          : undefined
+                      }
+                      sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                      alt={product.fullName}
+                      className="w-full h-full object-cover transition-transform duration-600 ease-out group-hover:scale-[1.03] select-none"
+                      loading="lazy"
+                      decoding="async"
+                      width={shopifyImage?.width || undefined}
+                      height={shopifyImage?.height || undefined}
+                    />
+                  ) : (
+                    <span className="flex h-full items-center justify-center px-6 text-center font-['Syne',sans-serif] text-lg font-bold uppercase text-white">
+                      {product.name}
+                    </span>
+                  )}
                 </a>
-
-                {/* Top-Left Badges: Category & Discount */}
-                <div className="absolute top-4 left-4 flex flex-col items-start gap-2 z-10 pointer-events-none">
-                  <span className="bg-white text-[#111111] text-[10px] md:text-[11px] font-bold tracking-[0.16em] px-3 py-1.5 uppercase rounded-none shadow-sm">
-                    {product.category}
-                  </span>
-                  <span className="bg-[#FF5A1F] text-white text-[10px] md:text-[11px] font-bold tracking-[0.1em] px-3 py-0.5 uppercase rounded-none shadow-sm">
-                    {product.discount}
-                  </span>
-                </div>
 
                 {/* Top-Right Wishlist Heart Button (Appears on hover or if wishlisted) */}
                 <button
@@ -159,14 +291,44 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
                 >
                   <button
                     type="button"
-                    onClick={(e) => handleAddToCart(product.id, e)}
+                    onClick={(e) => {
+                      if (product.isShopifyProduct) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (product.merchandiseId) {
+                          void addShopifyVariant(product.merchandiseId);
+                        } else {
+                          trackSelection();
+                          onSelectProduct?.(routeId);
+                        }
+                      } else {
+                        handleAddToCart(product.id, e);
+                      }
+                    }}
+                    disabled={
+                      product.isShopifyProduct
+                        ? !product.availableForSale || isCartAdding
+                        : false
+                    }
                     className={`w-full h-12 md:h-13 rounded-none text-[12px] font-bold tracking-[0.18em] uppercase flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] ${
                       isAdded
                         ? 'bg-[#FF5A2A] text-white shadow-sm'
                         : 'bg-[#111111] hover:bg-[#FF5A2A] text-white shadow-sm'
                     }`}
                   >
-                    {isAdded ? (
+                    {product.isShopifyProduct && product.merchandiseId ? (
+                      <>
+                        <ShoppingBag size={15} strokeWidth={2} />
+                        <span>{isCartAdding ? 'ADDING…' : 'ADD TO CART'}</span>
+                      </>
+                    ) : product.isShopifyProduct ? (
+                      <>
+                        <ArrowRight size={15} />
+                        <span>
+                          {product.availableForSale ? 'SELECT OPTIONS' : 'UNAVAILABLE'}
+                        </span>
+                      </>
+                    ) : isAdded ? (
                       <>
                         <Check size={15} strokeWidth={2.5} />
                         <span>ADDED TO CART</span>
@@ -189,7 +351,8 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
                     onClick={(e) => {
                       if (onSelectProduct) {
                         e.preventDefault();
-                        onSelectProduct(product.id);
+                        trackSelection();
+                        onSelectProduct(routeId);
                       }
                     }}
                     className="group/link block flex-1 cursor-pointer"
@@ -204,13 +367,16 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
                     <span className="text-[17px] md:text-[19px] font-bold text-[#111111] tracking-tight">
                       {product.price}
                     </span>
-                    <span className="text-[13.5px] md:text-[14.5px] text-[#999999] line-through font-normal">
-                      {product.originalPrice}
-                    </span>
+                    {product.originalPrice && (
+                      <span className="text-[13.5px] md:text-[14.5px] text-[#999999] line-through font-normal">
+                        {product.originalPrice}
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 {/* Star Rating & Review Count */}
+                {!product.isShopifyProduct && (
                 <div className="flex items-center gap-1.5 text-[12.5px] md:text-[13px] mt-1.5">
                   <div className="flex items-center gap-1 text-[#FF5A1F]">
                     <Star size={14} className="fill-[#FF5A1F] text-[#FF5A1F]" />
@@ -218,11 +384,22 @@ export const MyrklsProductGrid: React.FC<MyrklsProductGridProps> = ({
                   </div>
                   <span className="text-[#888888]">({product.reviews} reviews)</span>
                 </div>
+                )}
+                {product.isShopifyProduct && (
+                  <span
+                    className={`mt-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                      product.availableForSale ? 'text-[#43624C]' : 'text-[#9B4A3F]'
+                    }`}
+                  >
+                    {product.availableForSale ? 'Available' : 'Currently unavailable'}
+                  </span>
+                )}
               </div>
             </article>
           );
         })}
       </div>
+      )}
     </section>
   );
 };

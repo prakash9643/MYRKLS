@@ -1,23 +1,144 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Check, Instagram, Youtube, Linkedin, Twitter, ShieldCheck, Mail } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Instagram, Facebook, Youtube, Linkedin, Twitter, X, ShieldAlert } from 'lucide-react';
+import { useAnalyticsConsent } from '../analytics/ConsentProvider';
 
-interface MyrklsFooterProps {
+export interface MyrklsFooterProps {
   onNavigateViewAll?: () => void;
+  onNavigateHome?: () => void;
+  onNavigateProduct?: (productId: string) => void;
+  onNavigateAboutUs?: () => void;
+  onNavigateContactUs?: () => void;
+  onNavigateTerms?: () => void;
+  onNavigatePrivacy?: () => void;
+  onNavigateShipping?: () => void;
+  onNavigateReturns?: () => void;
 }
 
-export const MyrklsFooter: React.FC<MyrklsFooterProps> = ({ onNavigateViewAll }) => {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+export const MyrklsFooter: React.FC<MyrklsFooterProps> = ({
+  onNavigateViewAll,
+  onNavigateHome,
+  onNavigateAboutUs,
+  onNavigateContactUs,
+  onNavigateTerms,
+  onNavigatePrivacy,
+  onNavigateShipping,
+  onNavigateReturns,
+}) => {
+  const [legalView, setLegalView] = useState<'terms' | 'privacy' | null>(null);
+  const { openPreferences } = useAnalyticsConsent();
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  // Sync hash navigation with legal view
+  useEffect(() => {
+    const handleHash = () => {
+      // Internal pages now handle #terms and #privacy-policy as full routes
+    };
+
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  // Lock body scroll when legal view is open
+  useEffect(() => {
+    if (legalView) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [legalView]);
+
+  const closeLegalView = () => {
+    setLegalView(null);
+    const hash = (window.location.hash || '').toLowerCase();
+    if (hash.includes('terms') || hash.includes('privacy')) {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  };
+
+  const handleHomeClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!email) return;
-    setSubscribed(true);
-    setTimeout(() => {
-      setEmail('');
-      setSubscribed(false);
-    }, 3500);
+    if (onNavigateHome) {
+      onNavigateHome();
+    } else if (window.location.pathname === '/' && (!window.location.hash || window.location.hash === '#home')) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      window.location.href = '/#home';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleOurProductsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigateViewAll) {
+      onNavigateViewAll();
+    } else {
+      window.location.hash = '#all-products';
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAboutUsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigateAboutUs) {
+      onNavigateAboutUs();
+    } else {
+      window.location.hash = '#about-us';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleContactUsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigateContactUs) {
+      onNavigateContactUs();
+    } else {
+      window.location.hash = '#contact-us';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleTermsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigateTerms) {
+      onNavigateTerms();
+    } else {
+      window.location.hash = '#terms';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePrivacyClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigatePrivacy) {
+      onNavigatePrivacy();
+    } else {
+      window.location.hash = '#privacy-policy';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleShippingClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigateShipping) {
+      onNavigateShipping();
+    } else {
+      window.location.hash = '#shipping-policy';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleReturnsClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onNavigateReturns) {
+      onNavigateReturns();
+    } else {
+      window.location.hash = '#returns-refunds';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -27,330 +148,559 @@ export const MyrklsFooter: React.FC<MyrklsFooterProps> = ({ onNavigateViewAll })
       className="relative w-full text-white overflow-hidden rounded-none select-none border-t border-[#E8E5E0] bg-[#0A160D] scroll-mt-24"
     >
       <div id="myrkls-footer" className="sr-only" />
+
       {/* ======================================================== */}
-      {/* BACKGROUND IMAGE 1: Futuristic Lime/Olive Sunbeam Room   */}
+      {/* BACKGROUND: FOREST-GREEN GRADIENT & ATMOSPHERIC LAYERS   */}
       {/* ======================================================== */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <img
           src="/myrkls-footer-bg.webp"
           alt="MYRKLS Futuristic Architectural Laboratory Stage"
-          className="w-full h-full object-cover object-center brightness-[0.88] contrast-[1.06]"
+          className="w-full h-full object-cover object-center brightness-[0.85] contrast-[1.08]"
           loading="lazy"
           decoding="async"
         />
 
         {/* Top Vignette Gradient for seamless transition from the page above */}
-        <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#FAF9F7]/40 via-transparent to-transparent pointer-events-none mix-blend-overlay" />
+        <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#FAF9F7]/30 via-transparent to-transparent pointer-events-none mix-blend-overlay" />
 
-        {/* Ambient Atmospheric Tint Overlay: Subtle, balanced tone */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#09140B]/70 via-[#09140B]/44 to-[#030804]/92 pointer-events-none" />
+        {/* Ambient Forest-Green Atmospheric Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#09140B]/80 via-[#0A180E]/70 to-[#040905]/95 pointer-events-none" />
 
-        {/* Cinematic Deep Dark Bottom Shadow behind Logo for Razor-Sharp Contrast */}
-        <div className="absolute inset-x-0 bottom-0 h-[380px] sm:h-[480px] bg-gradient-to-t from-[#020503] via-[#020503]/85 to-transparent pointer-events-none" />
+        {/* Subtle Bottom Deep Shadow */}
+        <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#020503] via-[#020503]/70 to-transparent pointer-events-none" />
       </div>
 
       {/* ======================================================== */}
       {/* FOREGROUND CONTENT CONTAINER                             */}
       {/* ======================================================== */}
-      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-16 pt-20 sm:pt-24 lg:pt-28">
-        
-        {/* ======================================================== */}
-        {/* TOP FROSTED GLASS ROW: NEWSLETTER & PROTOCOL ACCESS      */}
-        {/* Section 1 Glass Effect: bg-white/[0.14] backdrop-blur-xl border-white/25 */}
-        {/* ======================================================== */}
-        <div className="w-full bg-white/[0.12] backdrop-blur-xl border border-white/25 shadow-[0_16px_40px_rgba(0,0,0,0.35)] rounded-none p-8 sm:p-10 lg:p-12 mb-14 sm:mb-20">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
-            {/* Left: Newsletter Manifesto */}
-            <div className="lg:col-span-7">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-1.5 h-1.5 rounded-none bg-[#FF5A1F] animate-pulse" />
-                <span className="text-[11px] font-sans tracking-[0.16em] text-[#C2E5D0] uppercase font-bold">
-                  PRIVATE FORMULATION REGISTRY
-                </span>
-              </div>
+      <div className="relative z-10 w-full max-w-[1320px] mx-auto">
 
-              <h3 className="text-[26px] sm:text-[34px] lg:text-[38px] font-normal tracking-[-0.03em] text-white leading-tight uppercase drop-shadow-sm">
-                JOIN THE MOLECULAR CIRCLE.
+        {/* ======================================================== */}
+        {/* MOBILE FOOTER (< 768px / md:hidden)                      */}
+        {/* Compact, 40-50% height reduction, 2-col nav, icon row    */}
+        {/* ======================================================== */}
+        <div className="md:hidden px-5 py-8">
+          {/* 1. Compact Brand Intro */}
+          <div>
+            <span className="text-[10px] sm:text-[11px] font-sans font-bold tracking-[0.18em] text-[#C2E5D0] uppercase block">
+              MYRKLS / GLOBAL SKIN SCIENCE
+            </span>
+            <h2 className="font-['Syne',sans-serif] text-[26px] sm:text-[30px] font-bold tracking-tight text-white uppercase leading-[1.12] mt-2">
+              BETTER SKIN.<br />
+              BACKED BY SCIENCE.
+            </h2>
+            <p className="mt-2 text-[13px] sm:text-[14px] text-[#E2EFE7]/85 font-normal leading-relaxed">
+              Advanced skincare, powered by global ingredient innovation.
+            </p>
+          </div>
+
+          {/* Divider 1: After Brand Intro */}
+          <div className="w-full h-px bg-white/10 my-5" />
+
+          {/* 2. Two-Column Navigation: EXPLORE + LEGAL Side by Side */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Left Column — EXPLORE */}
+            <div>
+              <h3 className="text-[11px] font-sans font-bold tracking-[0.16em] text-[#C2E5D0] uppercase mb-3">
+                EXPLORE
               </h3>
-
-              <p className="text-[14.5px] sm:text-[15.5px] text-[#E2EFE7] font-normal leading-relaxed mt-2 max-w-[580px] drop-shadow-sm">
-                Receive private allocations for small-batch clinical drops, peptide longevity whitepapers, and seasonal ritual adjustments.
-              </p>
+              <ul className="space-y-1.5 text-[14px] sm:text-[15px] font-normal text-white/85">
+                <li>
+                  <a
+                    href="#home"
+                    onClick={handleHomeClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Home
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#all-products"
+                    onClick={handleOurProductsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Our Products
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#about-us"
+                    onClick={handleAboutUsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#contact-us"
+                    onClick={handleContactUsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+              </ul>
             </div>
 
-            {/* Right: Glass Input & Submit Button */}
-            <div className="lg:col-span-5">
-              <form onSubmit={handleSubscribe} className="w-full flex flex-col sm:flex-row gap-2.5">
-                <div className="relative flex-1">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-white/60">
-                    <Mail size={16} />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter clinical email address..."
-                    className="w-full h-[48px] pl-10 pr-4 bg-black/50 border border-white/30 rounded-none text-white placeholder-white/60 text-[13.5px] font-normal focus:outline-none focus:border-white focus:bg-black/70 transition-all backdrop-blur-md"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className={`h-[48px] px-7 ${
-                    subscribed ? 'bg-[#FF5A2A] text-white' : 'bg-[#111111] hover:bg-[#FF5A2A] text-white'
-                  } text-[12px] font-bold tracking-[0.16em] uppercase rounded-none transition-all duration-300 flex items-center justify-center gap-2 shadow-sm cursor-pointer whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#FF5A2A] focus:ring-offset-2`}
-                >
-                  {subscribed ? (
-                    <>
-                      <Check size={16} strokeWidth={2.5} />
-                      <span>SUBSCRIBED</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>SUBSCRIBE</span>
-                      <ArrowRight size={15} />
-                    </>
-                  )}
-                </button>
-              </form>
-
-              <div className="flex items-center gap-4 text-[11.5px] text-white/80 font-sans tracking-wide mt-3">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <ShieldCheck size={12} className="text-[#C2E5D0]" />
-                  Zero Spam · Encrypted Data
-                </span>
-                <span>·</span>
-                <span>Unsubscribe Anytime</span>
-              </div>
+            {/* Right Column — LEGAL */}
+            <div>
+              <h3 className="text-[11px] font-sans font-bold tracking-[0.16em] text-[#C2E5D0] uppercase mb-3">
+                LEGAL
+              </h3>
+              <ul className="space-y-1.5 text-[14px] sm:text-[15px] font-normal text-white/85">
+                <li>
+                  <a
+                    href="#terms"
+                    onClick={handleTermsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Terms & Conditions
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#privacy-policy"
+                    onClick={handlePrivacyClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={openPreferences}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Cookie preferences
+                  </button>
+                </li>
+                <li>
+                  <a
+                    href="#shipping-policy"
+                    onClick={handleShippingClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Shipping Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#returns-refunds"
+                    onClick={handleReturnsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Returns & Refunds
+                  </a>
+                </li>
+              </ul>
             </div>
+          </div>
 
+          {/* 3. Social Icon Row (Icons ONLY, 20px size, accessible 44px touch targets) */}
+          <div className="mt-5 pt-1">
+            <div className="flex items-center gap-1 -ml-2">
+              {[
+                { name: 'Instagram', icon: Instagram },
+                { name: 'Facebook', icon: Facebook },
+                { name: 'YouTube', icon: Youtube },
+                { name: 'LinkedIn', icon: Linkedin },
+                { name: 'X (Twitter)', icon: Twitter },
+              ].map((social) => {
+                const Icon = social.icon;
+                return (
+                  <a
+                    key={social.name}
+                    href="#"
+                    onClick={(e) => e.preventDefault()}
+                    aria-label={`MYRKLS on ${social.name}`}
+                    title={`${social.name} — Official profile coming soon`}
+                    className="w-11 h-11 flex items-center justify-center text-white/75 hover:text-[#FF5A2A] transition-colors cursor-pointer"
+                  >
+                    <Icon size={20} />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Divider 2: Before Bottom Bar */}
+          <div className="w-full h-px bg-white/10 my-5" />
+
+          {/* 4. Bottom Bar (Center-Aligned with Minimal Spacing) */}
+          <div className="text-center space-y-1.5 text-[11.5px] font-sans text-white/65">
+            <div>
+              © 2026 MYRKLS. All Rights Reserved.
+            </div>
+            <div>
+              Designed by{' '}
+              <a
+                href="https://launchveda.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#FF5A2A] transition-colors underline-offset-4 hover:underline font-medium"
+              >
+                Launchveda
+              </a>
+            </div>
           </div>
         </div>
 
         {/* ======================================================== */}
-        {/* MIDDLE EDITORIAL NAVIGATION GRID (FROSTED GLASS PANELS)   */}
+        {/* DESKTOP FOOTER (>= 768px / hidden md:block)              */}
+        {/* 100% UNCHANGED SIGNATURE EDITORIAL CONCEPT               */}
         {/* ======================================================== */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-10 sm:gap-12 pb-16 border-b border-white/15">
-          
-          {/* Column 1: Brand Philosophy & Global Origins */}
-          <div className="col-span-2 md:col-span-4 lg:col-span-4 pr-0 lg:pr-6">
-            <span className="text-[12px] font-sans tracking-[0.14em] text-[#C2E5D0] uppercase font-bold block mb-4">
-              ADVANCED GLOBAL SKIN SCIENCE
-            </span>
-            <p className="text-[14.5px] text-white/95 font-normal leading-relaxed mb-6 drop-shadow-sm">
-              MYRKLS is an advanced laboratory collective synthesizing European peptide technologies, Swiss cellular chronobiology, Korean nanovesicle bio-delivery, and standardized Indian botanicals into high-performance skin systems.
-            </p>
+        <div className="hidden md:block px-6 sm:px-10 lg:px-16 pt-16 sm:pt-20 pb-8 sm:pb-10">
 
-            {/* Social Links Row with Frosted Glass Icons */}
-            <div className="space-y-2">
-              <span className="text-[11px] font-sans tracking-[0.14em] text-[#C2E5D0] uppercase font-semibold block">
-                FOLLOW OUR RESEARCH //
-              </span>
-              <div className="flex items-center gap-2.5">
+          {/* TOP AREA — BRAND STATEMENT */}
+          <div className="max-w-3xl">
+            <span className="text-[11px] sm:text-[12px] font-sans font-bold tracking-[0.2em] text-[#C2E5D0] uppercase block">
+              MYRKLS / ADVANCED GLOBAL SKIN SCIENCE
+            </span>
+
+            <h2 className="font-['Syne',sans-serif] text-[28px] sm:text-[38px] md:text-[44px] font-bold tracking-tight text-white uppercase leading-[1.12] mt-3">
+              BETTER SKIN. BACKED BY SCIENCE.
+            </h2>
+
+            <p className="mt-3.5 text-[14.5px] sm:text-[15.5px] text-[#E2EFE7]/85 font-normal leading-relaxed max-w-xl">
+              Thoughtfully formulated skincare, powered by global ingredient innovation.
+            </p>
+          </div>
+
+          {/* SUBTLE HORIZONTAL DIVIDER */}
+          <div className="w-full h-px bg-white/10 my-10 sm:my-12" />
+
+          {/* MIDDLE AREA — BALANCED NAVIGATION */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-12 md:gap-16 lg:gap-24">
+            
+            {/* 01: EXPLORE */}
+            <div>
+              <h3 className="text-[11px] font-sans font-bold tracking-[0.18em] text-[#C2E5D0] uppercase mb-4 sm:mb-5">
+                EXPLORE
+              </h3>
+              <ul className="space-y-3 text-[14px] font-normal text-white/85">
+                <li>
+                  <a
+                    href="#home"
+                    onClick={handleHomeClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Home
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#all-products"
+                    onClick={handleOurProductsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Our Products
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#about-us"
+                    onClick={handleAboutUsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#contact-us"
+                    onClick={handleContactUsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* 02: LEGAL */}
+            <div>
+              <h3 className="text-[11px] font-sans font-bold tracking-[0.18em] text-[#C2E5D0] uppercase mb-4 sm:mb-5">
+                LEGAL
+              </h3>
+              <ul className="space-y-3 text-[14px] font-normal text-white/85">
+                <li>
+                  <a
+                    href="#terms"
+                    onClick={handleTermsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Terms & Conditions
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#privacy-policy"
+                    onClick={handlePrivacyClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Privacy Policy
+                  </a>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={openPreferences}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-flex items-center min-h-[38px] py-1"
+                  >
+                    Cookie preferences
+                  </button>
+                </li>
+                <li>
+                  <a
+                    href="#shipping-policy"
+                    onClick={handleShippingClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Shipping Policy
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#returns-refunds"
+                    onClick={handleReturnsClick}
+                    className="hover:text-[#FF5A2A] transition-colors cursor-pointer inline-block"
+                  >
+                    Returns & Refunds
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* 03: SOCIAL */}
+            <div>
+              <h3 className="text-[11px] font-sans font-bold tracking-[0.18em] text-[#C2E5D0] uppercase mb-4 sm:mb-5">
+                SOCIAL
+              </h3>
+              <ul className="space-y-3 text-[14px] font-normal text-white/85">
                 {[
-                  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com' },
-                  { name: 'YouTube', icon: Youtube, href: 'https://youtube.com' },
-                  { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com' },
-                  { name: 'Twitter / X', icon: Twitter, href: 'https://x.com' },
+                  { name: 'Instagram', icon: Instagram },
+                  { name: 'Facebook', icon: Facebook },
+                  { name: 'YouTube', icon: Youtube },
+                  { name: 'LinkedIn', icon: Linkedin },
+                  { name: 'X (Twitter)', icon: Twitter },
                 ].map((social) => {
                   const Icon = social.icon;
                   return (
-                    <a
-                      key={social.name}
-                      href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Visit MYRKLS on ${social.name}`}
-                      className="w-10 h-10 rounded-none bg-white/[0.12] hover:bg-white text-white hover:text-[#09140B] border border-white/25 backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-sm cursor-pointer group"
-                    >
-                      <Icon size={16} className="transition-transform group-hover:scale-110" />
-                    </a>
+                    <li key={social.name}>
+                      <a
+                        href="#"
+                        onClick={(e) => e.preventDefault()}
+                        aria-label={`MYRKLS on ${social.name}`}
+                        title={`${social.name} — Official profile coming soon`}
+                        className="inline-flex items-center gap-2.5 text-white/85 hover:text-[#FF5A2A] transition-colors cursor-pointer group"
+                      >
+                        <Icon size={15} className="text-white/60 group-hover:text-[#FF5A2A] transition-colors shrink-0" />
+                        <span>{social.name}</span>
+                      </a>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* SUBTLE HORIZONTAL DIVIDER */}
+          <div className="w-full h-px bg-white/10 mt-10 sm:mt-12 mb-6 sm:mb-8" />
+
+          {/* BOTTOM BAR */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] font-sans text-white/65">
+            <div>
+              © 2026 MYRKLS. All Rights Reserved.
+            </div>
+            <div>
+              Designed by{' '}
+              <a
+                href="https://launchveda.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-[#FF5A2A] transition-colors underline-offset-4 hover:underline font-medium"
+              >
+                Launchveda
+              </a>
             </div>
           </div>
 
-          {/* Column 2: Formulations / Shop */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-3">
-            <h4 className="text-[12px] font-sans tracking-[0.14em] text-[#C2E5D0] uppercase font-bold mb-5">
-              FORMULATIONS // 01
-            </h4>
-            <ul className="space-y-3 text-[14px] font-normal text-white/95">
-              <li>
-                <a href="#incarnation" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  INCARNATION™ Retinal Serum
-                </a>
-              </li>
-              <li>
-                <a href="#sentinel" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  SENTINEL™ Aqua Sunscreen SPF 50+
-                </a>
-              </li>
-              <li>
-                <a href="#clinical-serums" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  AWAKENING Gel Cleanser
-                </a>
-              </li>
-              <li>
-                <a href="#clinical-serums" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  RESTORATION Pigment Cream
-                </a>
-              </li>
-              <li>
-                <a href="#clinical-serums" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  VISION™ Pigment Corrector
-                </a>
-              </li>
-              <li>
+        </div>
+
+      </div>
+
+      {/* ======================================================== */}
+      {/* DEDICATED LEGAL PAGE MODAL (TERMS & CONDITIONS / PRIVACY) */}
+      {/* Clearly marked draft content requiring approval          */}
+      {/* ======================================================== */}
+      <AnimatePresence>
+        {legalView && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="legal-page-title"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md select-text"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full max-w-3xl max-h-[85vh] bg-[#FAF9F7] text-[#111111] rounded-none border border-[#E2DDD5] shadow-2xl flex flex-col overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-[#E8E5E0] bg-[#F4F1EA]">
+                <div>
+                  <span className="text-[10px] font-sans font-bold tracking-[0.18em] text-[#173B2B] uppercase block">
+                    MYRKLS // DRAFT POLICY FRAMEWORK
+                  </span>
+                  <h2
+                    id="legal-page-title"
+                    className="font-['Syne',sans-serif] text-[20px] sm:text-[24px] font-bold uppercase tracking-tight text-[#111111] mt-0.5"
+                  >
+                    {legalView === 'terms' ? 'Terms & Conditions' : 'Privacy Policy'}
+                  </h2>
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => {
-                    if (onNavigateViewAll) {
-                      onNavigateViewAll();
-                    } else {
-                      window.location.hash = '#all-products';
-                    }
-                  }}
-                  className="text-[#FF5A1F] hover:underline transition-colors flex items-center gap-1 font-semibold pt-1 cursor-pointer text-left"
+                  onClick={closeLegalView}
+                  aria-label="Close legal document"
+                  className="w-10 h-10 rounded-none bg-white hover:bg-[#111111] text-[#111111] hover:text-white border border-[#DDD8D0] flex items-center justify-center transition-colors cursor-pointer"
                 >
-                  <span>View All Clinical Protocols (7)</span>
-                  <ArrowRight size={13} />
+                  <X size={18} />
                 </button>
-              </li>
-            </ul>
-          </div>
+              </div>
 
-          {/* Column 3: Science & Philosophy */}
-          <div className="col-span-1 md:col-span-2 lg:col-span-2">
-            <h4 className="text-[12px] font-sans tracking-[0.14em] text-[#C2E5D0] uppercase font-bold mb-5">
-              SCIENCE // 02
-            </h4>
-            <ul className="space-y-3 text-[14px] font-normal text-white/95">
-              <li>
-                <a href="#our-science" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Active Intelligence
-                </a>
-              </li>
-              <li>
-                <a href="#our-science" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Precision Chemistry
-                </a>
-              </li>
-              <li>
-                <a href="#our-science" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Skin Longevity Matrix
-                </a>
-              </li>
-              <li>
-                <a href="#global-science-network" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Global Science Network
-                </a>
-              </li>
-              <li>
-                <a href="#featured-protection" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  In-Vivo Clinical Trials
-                </a>
-              </li>
-              <li>
-                <a href="#good-to-know" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Ingredient Transparency
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Concierge & Client Support */}
-          <div className="col-span-2 md:col-span-4 lg:col-span-3">
-            <h4 className="text-[12px] font-sans tracking-[0.14em] text-[#C2E5D0] uppercase font-bold mb-5">
-              CONCIERGE // 03
-            </h4>
-            <ul className="space-y-3 text-[14px] font-normal text-white/95">
-              <li>
-                <a href="#good-to-know" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Frequently Asked Questions
-                </a>
-              </li>
-              <li>
-                <a href="#clinical-reviews" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Verified Patient Reviews
-                </a>
-              </li>
-              <li>
-                <a href="#contact" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Clinical Consultation Support
-                </a>
-              </li>
-              <li>
-                <a href="#track-order" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Track Order Status
-                </a>
-              </li>
-              <li>
-                <a href="#protocols" className="hover:text-white hover:underline transition-colors block drop-shadow-sm">
-                  Active Sequencing Protocol
-                </a>
-              </li>
-              <li className="pt-2">
-                <div className="p-3 bg-white/[0.08] border border-white/20 backdrop-blur-md text-[11.5px] font-sans text-[#E2EFE7] leading-relaxed">
-                  <span className="text-white font-bold block mb-0.5">DIRECT LAB INQUIRIES:</span>
-                  concierge@myrkls.com
+              {/* Legal Notice Warning Banner */}
+              <div className="bg-[#FFF4E5] border-b border-[#FFE0B2] px-6 py-3.5 flex items-start gap-3">
+                <ShieldAlert size={18} className="text-[#E65100] shrink-0 mt-0.5" />
+                <div className="text-[12px] font-sans text-[#794500] leading-relaxed">
+                  <span className="font-bold uppercase tracking-wider block">
+                    Notice: Draft Content Requiring Approval Before Publication
+                  </span>
+                  This document serves as a placeholder draft framework. Official company terms, legal jurisdiction, and business policies must be reviewed and formally approved by authorized MYRKLS counsel before public release.
                 </div>
-              </li>
-            </ul>
+              </div>
+
+              {/* Scrollable Document Body */}
+              <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-6 text-[13.5px] font-normal leading-relaxed text-[#444444]">
+                {legalView === 'terms' ? (
+                  <>
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        01. General Framework & Acceptance
+                      </h4>
+                      <p>
+                        By accessing or using the MYRKLS website and purchasing formulations, you acknowledge that this platform is provided for informational and direct purchasing purposes. These terms represent a standard framework outlining user obligations and service guidelines.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        02. Dermatological & Cosmetic Disclaimer
+                      </h4>
+                      <p>
+                        MYRKLS cosmetic formulations are developed for topical skincare care and aesthetic maintenance. They do not constitute pharmaceutical treatments, medical advice, or therapeutic cures for dermatological diseases. Individual results vary; patch testing is recommended prior to introducing new active bio-conjugates.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        03. Intellectual Property Rights
+                      </h4>
+                      <p>
+                        All brand assets, names (including VISION™, INCARNATION™, REBIRTH™, ETERNITY™, RESTORATION™, AWAKENING™, SENTINEL™), laboratory design systems, editorial imagery, and digital assets remain the proprietary property of MYRKLS. Unauthorized reproduction or commercial re-distribution is prohibited.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        04. Orders, Pricing & Fulfillment
+                      </h4>
+                      <p>
+                        All formulation prices are listed in Indian Rupees (₹) inclusive of applicable taxes unless specified otherwise. We reserve the right to correct pricing errors or update product availability without prior notice.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        05. Regulatory Jurisdiction
+                      </h4>
+                      <p className="italic text-[#777777]">
+                        [Draft Note: Specific governing law, dispute resolution venue, and arbitration clauses to be finalized and inserted by MYRKLS legal counsel.]
+                      </p>
+                    </section>
+                  </>
+                ) : (
+                  <>
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        01. Information Collection Framework
+                      </h4>
+                      <p>
+                        MYRKLS collects necessary customer data exclusively to deliver secure order fulfillment, OTP-verified authentication, and customer support. This includes contact details (mobile number, delivery address, email) provided willingly during checkout or account management.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        02. Use of Authorized Customer Data
+                      </h4>
+                      <p>
+                        Personal details are utilized strictly for order processing, logistics dispatch via certified courier partners, and transactional notifications. Customer information is never sold, leased, or distributed to third-party marketing brokers.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        03. Data Security & Storage
+                      </h4>
+                      <p>
+                        All sensitive customer data is handled through encrypted protocols and authorized tokenization. We enforce strict administrative access controls to safeguard customer accounts against unauthorized disclosure.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        04. User Privacy Rights
+                      </h4>
+                      <p>
+                        Customers maintain full access to their saved addresses and contact profiles through the MY ACCOUNT dashboard. You may request data modification or deletion by contacting customer support.
+                      </p>
+                    </section>
+
+                    <section className="space-y-2">
+                      <h4 className="font-bold text-[#111111] uppercase tracking-wide text-[12px]">
+                        05. Regulatory Compliance
+                      </h4>
+                      <p className="italic text-[#777777]">
+                        [Draft Note: Statutory compliance clauses in accordance with applicable Digital Personal Data Protection legislation to be inserted by MYRKLS legal counsel.]
+                      </p>
+                    </section>
+                  </>
+                )}
+              </div>
+
+              {/* Modal Footer Action */}
+              <div className="px-6 py-4 border-t border-[#E8E5E0] bg-[#F4F1EA] flex justify-end">
+                <button
+                  type="button"
+                  onClick={closeLegalView}
+                  className="h-10 px-6 bg-[#111111] hover:bg-[#FF5A2A] text-white text-[12px] font-bold tracking-[0.14em] uppercase transition-colors cursor-pointer"
+                >
+                  Close & Return
+                </button>
+              </div>
+            </motion.div>
           </div>
-
-        </div>
-
-        {/* ======================================================== */}
-        {/* LEGAL & CERTIFICATIONS SUB-ROW                           */}
-        {/* ======================================================== */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-8 text-[12px] font-sans text-white/85 font-medium">
-          <div>
-            © 2026 MYRKLS Inc. All rights reserved. Global Science. Visible Results.
-          </div>
-          <div className="flex flex-wrap items-center gap-5">
-            <a href="#privacy" className="hover:text-white transition-colors">Privacy Policy</a>
-            <span>·</span>
-            <a href="#terms" className="hover:text-white transition-colors">Terms of Ritual</a>
-            <span>·</span>
-            <a href="#compliance" className="hover:text-white transition-colors">Clinical Compliance</a>
-            <span>·</span>
-            <a href="#sitemap" className="hover:text-white transition-colors">Sitemap</a>
-          </div>
-        </div>
-
-      </div>
-
-      {/* ======================================================== */}
-      {/* MONUMENTAL LOGO AT BOTTOM                                */}
-      {/* Responsive padding and vertical bottom fade               */}
-      {/* ======================================================== */}
-      <div className="relative z-10 w-full pt-8 pb-0 px-6 sm:px-12 lg:px-20 flex justify-center items-end pointer-events-none select-none overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0, y: 25 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full relative flex justify-center items-end"
-        >
-          {/* Logo with Bottom Fade Gradient Mask */}
-          <img
-            src="/myrkls-logo-exact-retina.png"
-            alt="MYRKLS Global Science Visible Results Monumental Logo"
-            className="w-full h-auto object-contain relative z-10 drop-shadow-[0_12px_35px_rgba(0,0,0,0.7)]"
-            style={{
-              maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.15) 85%, rgba(0,0,0,0) 98%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, rgba(0,0,0,0.15) 85%, rgba(0,0,0,0) 98%)',
-            }}
-            loading="lazy"
-            decoding="async"
-          />
-        </motion.div>
-      </div>
-
+        )}
+      </AnimatePresence>
     </footer>
   );
 };

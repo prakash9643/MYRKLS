@@ -19,6 +19,8 @@ import { useCart } from '../context/MyrklsCartContext';
 
 import { ALL_MYRKLS_PRODUCTS } from '../data/products';
 import type { MyrklsProductDetail } from '../types';
+import { MyrklsShopifyCatalogPage } from './MyrklsShopifyCatalogPage';
+import { readShopifyConfig } from '../shopify/config';
 export { ALL_MYRKLS_PRODUCTS };
 export type { MyrklsProductDetail };
 
@@ -95,6 +97,17 @@ export const MyrklsViewAllPage: React.FC<MyrklsViewAllPageProps> = ({
     e.stopPropagation();
     setWishlistedIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const shopifyConfig = readShopifyConfig();
+  if (shopifyConfig.config || shopifyConfig.error) {
+    return (
+      <MyrklsShopifyCatalogPage
+        onBackToHome={onBackToHome}
+        onNavigatePdp={onNavigatePdp}
+        onNavigateAccount={onNavigateAccount}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF9F7] text-[#133429] flex flex-col font-sans selection:bg-[#133429] selection:text-white">
@@ -283,20 +296,10 @@ export const MyrklsViewAllPage: React.FC<MyrklsViewAllPageProps> = ({
                     >
                       <img
                         src={prod.image}
-                        alt={`${prod.name} ${prod.categoryTitle}`}
+                        alt={prod.categoryTitle}
                         className="w-full h-full object-cover transition-transform duration-600 ease-out group-hover:scale-[1.03] select-none"
                         loading="lazy"
                       />
-                    </div>
-
-                    {/* Top-Left Badges: Category & Discount */}
-                    <div className="absolute top-4 left-4 flex flex-col items-start gap-2 z-10 pointer-events-none">
-                      <span className="bg-white text-[#111111] text-[10px] md:text-[11px] font-bold tracking-[0.16em] px-3 py-1.5 uppercase rounded-none shadow-sm">
-                        {prod.category}
-                      </span>
-                      <span className="bg-[#FF5A1F] text-white text-[10px] md:text-[11px] font-bold tracking-[0.1em] px-3 py-0.5 uppercase rounded-none shadow-sm">
-                        {prod.discount}
-                      </span>
                     </div>
 
                     {/* Top-Right Wishlist Heart Button (Appears on hover or if wishlisted) */}
@@ -355,7 +358,7 @@ export const MyrklsViewAllPage: React.FC<MyrklsViewAllPageProps> = ({
                         onClick={() => setActiveQuickView(prod)}
                       >
                         <h3 className="text-[17px] md:text-[19px] font-semibold text-[#111111] tracking-tight leading-snug group-hover/link:text-[#FF5A1F] transition-colors">
-                          {prod.name} {prod.categoryTitle}
+                          {prod.categoryTitle}
                         </h3>
                       </div>
 
@@ -437,9 +440,6 @@ export const MyrklsViewAllPage: React.FC<MyrklsViewAllPageProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10.5px] font-sans uppercase tracking-[0.1em] text-[#7A857E] font-medium">
-                      {activeQuickView.categoryPill}
-                    </span>
                     <h3 className="text-[26px] font-bold font-['Syne',sans-serif] text-[#133429] tracking-tight">
                       {activeQuickView.name}
                     </h3>
@@ -467,9 +467,6 @@ export const MyrklsViewAllPage: React.FC<MyrklsViewAllPageProps> = ({
                         {activeQuickView.originalPrice}
                       </span>
                     </div>
-                    <span className="text-[11.5px] font-sans text-[#FF5A1F] font-bold uppercase tracking-wider">
-                      {activeQuickView.savings} · {activeQuickView.discount}
-                    </span>
                   </div>
 
                   <button

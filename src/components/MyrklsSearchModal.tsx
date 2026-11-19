@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, X, ArrowRight, Sparkles } from 'lucide-react';
 import { ALL_MYRKLS_PRODUCTS, PRODUCT_KEYWORDS_MAP, SUGGESTED_SEARCHES } from '../data/products';
+import { readShopifyConfig } from '../shopify/config';
+import { ShopifySearchResults } from './ShopifySearchResults';
 
 export interface MyrklsSearchModalProps {
   isOpen: boolean;
@@ -16,6 +18,8 @@ export const MyrklsSearchModal: React.FC<MyrklsSearchModalProps> = ({
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const shopifyConfig = readShopifyConfig();
+  const shopifyMode = shopifyConfig.config !== null || shopifyConfig.error !== null;
 
   // Auto-focus input when modal opens
   useEffect(() => {
@@ -135,7 +139,12 @@ export const MyrklsSearchModal: React.FC<MyrklsSearchModalProps> = ({
         {/* 2. RESULTS / SUGGESTIONS BODY (SCROLLABLE)               */}
         {/* ======================================================== */}
         <div className="overflow-y-auto p-4 sm:p-6 flex-1 space-y-6">
-          {query.trim() === '' ? (
+          {shopifyMode ? (
+            <ShopifySearchResults
+              query={query.trim()}
+              onSelectProduct={handleSelect}
+            />
+          ) : query.trim() === '' ? (
             /* DEFAULT STATE: POPULAR SEARCHES & CURATED FORMULATIONS */
             <div>
               {/* Popular Search Pills */}
@@ -224,23 +233,12 @@ export const MyrklsSearchModal: React.FC<MyrklsSearchModalProps> = ({
 
                     {/* Product Details */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9.5px] font-sans font-bold tracking-[0.14em] uppercase text-[#FF5A1F]">
-                          {prod.category}
-                        </span>
-                        {prod.discount && (
-                          <span className="text-[8.5px] font-sans font-bold text-white bg-[#FF5A1F] px-1.5 py-0.5 rounded-none uppercase">
-                            {prod.discount}
-                          </span>
-                        )}
-                      </div>
-
                       <h4 className="font-['Syne',sans-serif] text-[15px] sm:text-[16px] font-bold uppercase text-[#133429] group-hover:text-[#FF5A1F] transition-colors truncate">
-                        {prod.name}
+                        {prod.categoryTitle}
                       </h4>
 
                       <p className="text-[11.5px] font-sans text-[#5A6660] truncate">
-                        {prod.categoryTitle}
+                        {prod.name}
                       </p>
 
                       {/* Pricing */}
@@ -309,7 +307,9 @@ export const MyrklsSearchModal: React.FC<MyrklsSearchModalProps> = ({
         <div className="px-4 sm:px-6 py-3 bg-white border-t border-[#E5E0D8] flex items-center justify-between text-[10.5px] font-sans text-[#7A8A82]">
           <span className="flex items-center gap-1.5">
             <Sparkles size={11} className="text-[#FF5A1F]" />
-            Official MYRKLS Formulation Catalog · 7 Clinical Systems
+            {shopifyMode
+              ? 'Official MYRKLS Shopify Catalog'
+              : 'Official MYRKLS Formulation Catalog · 7 Clinical Systems'}
           </span>
           <span className="hidden sm:inline">ESC to dismiss</span>
         </div>
